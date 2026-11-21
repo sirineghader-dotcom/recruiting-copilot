@@ -11,7 +11,7 @@ and runs outreach. A recruiter approves every step.
 | 1. CV pipeline | Upload form | Reads PDF/Word CVs (including scans) with Gemini, removes duplicates, keeps the newest CV, flags unreadable files |
 | 2. Job description approval | Transcript form | Gemini writes a job description from a call transcript → Slack Approve/Reject → saved as an open role |
 | 3. Slack search bot | `@Recruiting copilot` mention | Plain-English question → top 5 candidates with score, 2-line reason and source CV, or "no good match" → approve outreach |
-| 4. Outreach | Approved shortlist | Candidates go into the GHL candidate pipeline and get an email sequence that stops when they reply |
+| 4. Outreach | Approved shortlist (checked every minute) | Sends each approved candidate to a GHL inbound-webhook workflow, which creates the contact + opportunity and starts an email sequence that stops when they reply. Reads GHL stages back into Supabase |
 
 **The rules, and where they are enforced**
 - *Nothing reaches a candidate or client until a recruiter clicks Approve*: Slack "send and wait" approval nodes in workflows 2 and 3.

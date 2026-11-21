@@ -2,7 +2,7 @@
   "name": "4 - GHL outreach",
   "nodes": [
     {
-      "id": "e11bfd97-0ddb-4c06-ae0a-1f38de2b9aaf",
+      "id": "fa98fce1-d48c-4ba4-9ca4-79eaec4ef6eb",
       "name": "Every minute",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
@@ -22,7 +22,7 @@
       }
     },
     {
-      "id": "a8697410-422c-4d9c-97f2-32adbc50ddec",
+      "id": "a691903e-e13c-43b6-aeb4-8faa2b648eef",
       "name": "Settings",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -31,11 +31,11 @@
         0
       ],
       "parameters": {
-        "jsCode": "// Settings for the outreach workflow. Change these to match your setup.\nreturn [{\n  json: {\n    location_id: 'yLiKZKvk2CeI2ckIqd1L',   // the GHL sub-account (location)\n    pipeline_name: 'SG - Candidates',        // the candidate pipeline in GHL\n    outreach_tag: 'sg-outreach',             // adding this tag starts the GHL email sequence\n    // TEST MODE: every candidate's GHL contact gets YOUR inbox with a +tag\n    // (e.g. you+cand12@gmail.com), so no real person is ever emailed while testing.\n    // Set to '' to email candidates at their real address.\n    test_inbox: 'YOUR_EMAIL@gmail.com'\n  }\n}];\n"
+        "jsCode": "// Settings for the outreach workflow. Change these to match your setup.\nreturn [{\n  json: {\n    location_id: 'yLiKZKvk2CeI2ckIqd1L',   // the GHL sub-account (location)\n    pipeline_name: 'SG - Candidates',        // the candidate pipeline in GHL\n    // The URL of the \"Inbound Webhook\" trigger of the GHL workflow \"SG - Candidate intake\".\n    // The course key can only READ from GHL, so n8n hands each candidate to that GHL workflow,\n    // which creates the contact + opportunity and adds the tag that starts the email sequence.\n    // Paste it in n8n only, never in GitHub (anyone with it could create contacts).\n    ghl_webhook: 'PASTE_GHL_WEBHOOK_URL',\n    // TEST MODE: every candidate's GHL contact gets YOUR inbox with a +tag\n    // (e.g. you+cand12@gmail.com), so no real person is ever emailed while testing.\n    // Set to '' to email candidates at their real address.\n    test_inbox: 'YOUR_EMAIL@gmail.com'\n  }\n}];\n"
       }
     },
     {
-      "id": "20f67316-ba96-4920-84af-ecb907b99621",
+      "id": "e82bd16a-b50c-4a3e-8dda-c821afd91690",
       "name": "Get GHL pipelines",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -63,7 +63,7 @@
       }
     },
     {
-      "id": "cda69d29-00b3-41c9-9721-13d6622392b2",
+      "id": "a820642b-7dc0-4fe1-9e5b-56def89fbe06",
       "name": "Find pipeline",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -76,7 +76,7 @@
       }
     },
     {
-      "id": "ac87d495-b380-4e09-8f98-2442a24a6e6f",
+      "id": "e5017ae9-098d-4b99-abda-a912d0bd785f",
       "name": "Get approved shortlist",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -96,7 +96,7 @@
       "alwaysOutputData": true
     },
     {
-      "id": "2c1cbc29-6ed0-4c8f-89c1-5aa9407afb8a",
+      "id": "9489072b-a88c-43d3-afbb-bcfc070849ee",
       "name": "Prepare GHL records",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -105,12 +105,12 @@
         -100
       ],
       "parameters": {
-        "jsCode": "// Turn each newly approved shortlist row into a GHL contact + opportunity.\nconst s = $('Settings').first().json;\nconst info = $('Find pipeline').first().json;\nconst rows = $input.all().map(i => i.json).filter(r => r.id);   // empty result -> nothing to do\nif (!rows.length) return [];\n// Safety: never send anything until a real test inbox is filled in.\nif (/YOUR_EMAIL/i.test(s.test_inbox)) throw new Error('Open the Settings node and put your own email in test_inbox first.');\n\nconst testEmail = candidateId => {\n  const [user, domain] = s.test_inbox.split('@');\n  return `${user}+cand${candidateId}@${domain}`;\n};\n\nreturn rows.map(r => {\n  const c = r.candidates || {};\n  const fullName = c.full_name || 'Candidate';\n  const [first, ...rest] = fullName.split(' ');\n  return {\n    json: {\n      shortlist_id: r.id,\n      role_id: r.role_id,\n      role_title: (r.roles || {}).title || '',\n      candidate_id: r.candidate_id,\n      name: fullName,\n      contact: {\n        locationId: s.location_id,\n        firstName: first,\n        lastName: rest.join(' '),\n        name: fullName,\n        email: s.test_inbox ? testEmail(r.candidate_id) : c.email,\n        tags: ['sg-candidate', 'sg-role-' + r.role_id],\n        source: 'SG Recruiting Copilot'\n      },\n      opportunity: {\n        pipelineId: info.pipeline_id,\n        locationId: s.location_id,\n        pipelineStageId: info.stages.outreachsent,\n        status: 'open',\n        // The role and candidate ids in the name let us sync stages back to Supabase later.\n        name: `SG - ${fullName} (role ${r.role_id}, candidate ${r.candidate_id})`\n      }\n    }\n  };\n});\n"
+        "jsCode": "// Turn each newly approved shortlist row into one request for the GHL intake workflow.\nconst s = $('Settings').first().json;\nconst info = $('Find pipeline').first().json;\nconst rows = $input.all().map(i => i.json).filter(r => r.id);   // empty result -> nothing to do\nif (!rows.length) return [];\n// Safety: never send anything until a real test inbox is filled in.\nif (/YOUR_EMAIL/i.test(s.test_inbox)) throw new Error('Open the Settings node and put your own email in test_inbox first.');\nif (!/^https:\\/\\//.test(s.ghl_webhook)) throw new Error('Open the Settings node and paste the GHL webhook URL into ghl_webhook first.');\n\nconst testEmail = candidateId => {\n  const [user, domain] = s.test_inbox.split('@');\n  return `${user}+cand${candidateId}@${domain}`;\n};\n\nreturn rows.map(r => {\n  const c = r.candidates || {};\n  const fullName = c.full_name || 'Candidate';\n  const [first, ...rest] = fullName.split(' ');\n  return {\n    json: {\n      shortlist_id: r.id,\n      role_id: r.role_id,\n      role_title: (r.roles || {}).title || '',\n      candidate_id: r.candidate_id,\n      name: fullName,\n      // Flat fields: these are what you map in the GHL workflow ({{inboundWebhookRequest.email}} etc.)\n      first_name: first,\n      last_name: rest.join(' '),\n      full_name: fullName,\n      email: s.test_inbox ? testEmail(r.candidate_id) : c.email,\n      // The role and candidate ids in the name let us sync stages back to Supabase later.\n      opportunity_name: `SG - ${fullName} (role ${r.role_id}, candidate ${r.candidate_id})`,\n      source: 'SG Recruiting Copilot'\n    }\n  };\n});\n"
       }
     },
     {
-      "id": "aa79bff2-2816-4a58-9463-127fa84bb52f",
-      "name": "Upsert GHL contact",
+      "id": "1c8b1c8e-9622-4165-9436-ad5477b20d87",
+      "name": "Send to GHL",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
@@ -119,96 +119,22 @@
       ],
       "parameters": {
         "method": "POST",
-        "url": "https://services.leadconnectorhq.com/contacts/upsert",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Version",
-              "value": "2021-07-28"
-            }
-          ]
-        },
-        "options": {
-          "timeout": 30000
-        },
+        "url": "={{ $('Settings').first().json.ghl_webhook }}",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify($json.contact) }}"
+        "jsonBody": "={{ JSON.stringify((({ shortlist_id, ...rest }) => rest)($json)) }}",
+        "options": {
+          "timeout": 30000
+        }
       }
     },
     {
-      "id": "38ef7da8-6557-4f3f-86fb-d07283864dce",
-      "name": "Create opportunity",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        1540,
-        -100
-      ],
-      "parameters": {
-        "method": "POST",
-        "url": "https://services.leadconnectorhq.com/opportunities/",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Version",
-              "value": "2021-07-28"
-            }
-          ]
-        },
-        "options": {
-          "timeout": 30000
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ ...$('Prepare GHL records').item.json.opportunity, contactId: $json.contact.id }) }}"
-      },
-      "onError": "continueRegularOutput"
-    },
-    {
-      "id": "c8666698-4a20-4170-b528-cc3304c9a43f",
-      "name": "Add outreach tag",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        1760,
-        -100
-      ],
-      "parameters": {
-        "method": "POST",
-        "url": "=https://services.leadconnectorhq.com/contacts/{{ $('Upsert GHL contact').item.json.contact.id }}/tags",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Version",
-              "value": "2021-07-28"
-            }
-          ]
-        },
-        "options": {
-          "timeout": 30000
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ tags: [$('Settings').first().json.outreach_tag] }) }}"
-      }
-    },
-    {
-      "id": "b640794b-a4ee-434b-9732-7e35a8a03dd5",
+      "id": "fd628183-149e-4caf-bc97-eff91afa0924",
       "name": "Mark contacted",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1980,
+        1540,
         -100
       ],
       "parameters": {
@@ -225,34 +151,12 @@
       }
     },
     {
-      "id": "1995a825-9d33-48ad-8062-b38cb1c45d01",
-      "name": "Save GHL contact id",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        2200,
-        -100
-      ],
-      "parameters": {
-        "method": "PATCH",
-        "url": "=https://irqnsrfhwinvujxkmsmo.supabase.co/rest/v1/candidates?id=eq.{{ $('Prepare GHL records').item.json.candidate_id }}",
-        "authentication": "predefinedCredentialType",
-        "nodeCredentialType": "supabaseApi",
-        "options": {
-          "timeout": 30000
-        },
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ ghl_contact_id: $('Upsert GHL contact').item.json.contact.id }) }}"
-      }
-    },
-    {
-      "id": "e1f3b69a-c147-412f-a45d-0ddbcfbb8665",
+      "id": "762fdbf7-7df6-4b92-8474-c22f6743166e",
       "name": "Summarize",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2420,
+        1760,
         -100
       ],
       "parameters": {
@@ -260,12 +164,12 @@
       }
     },
     {
-      "id": "cbcc6bc3-0c95-472b-9d9c-c7c64de12e0d",
+      "id": "392a0dcc-bfac-40b0-a46a-5e752176ffe9",
       "name": "Tell recruiter",
       "type": "n8n-nodes-base.slack",
       "typeVersion": 2.3,
       "position": [
-        2640,
+        1980,
         -100
       ],
       "parameters": {
@@ -280,7 +184,7 @@
       }
     },
     {
-      "id": "144122eb-07be-42ad-8ac7-82c160c2419e",
+      "id": "f82202f3-05ed-4bf1-a859-fa3c57bf3468",
       "name": "Get SG opportunities",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -308,7 +212,7 @@
       }
     },
     {
-      "id": "df39c5ca-127b-43a3-ade8-c71721f0dbcc",
+      "id": "8101187a-70ee-4742-91e0-c93188b27cec",
       "name": "Get current stages",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -329,7 +233,7 @@
       "executeOnce": true
     },
     {
-      "id": "7aee557f-c98a-4722-b719-58150879e76b",
+      "id": "1e2adec2-4848-40ac-b98d-dbea39aae0ff",
       "name": "Find stage changes",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -342,7 +246,7 @@
       }
     },
     {
-      "id": "0cacdeb9-255f-4a46-aa5f-5cbfc08a09d3",
+      "id": "998bda99-e91a-4c9a-9df5-f1fee38bda4e",
       "name": "Update stage",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -429,36 +333,14 @@
       "main": [
         [
           {
-            "node": "Upsert GHL contact",
+            "node": "Send to GHL",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Upsert GHL contact": {
-      "main": [
-        [
-          {
-            "node": "Create opportunity",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Create opportunity": {
-      "main": [
-        [
-          {
-            "node": "Add outreach tag",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Add outreach tag": {
+    "Send to GHL": {
       "main": [
         [
           {
@@ -470,17 +352,6 @@
       ]
     },
     "Mark contacted": {
-      "main": [
-        [
-          {
-            "node": "Save GHL contact id",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Save GHL contact id": {
       "main": [
         [
           {

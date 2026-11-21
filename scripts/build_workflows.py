@@ -159,11 +159,12 @@ save("3 - Slack search bot", [
     ("Mark shortlist approved", "Confirm approved", 0)])
 
 # ---------- Workflow 4: GHL outreach + pipeline sync ----------
-# Every minute: push newly approved candidates into GHL (contact, opportunity, tag that starts the
-# email sequence), then copy GHL pipeline stages back to Supabase for the portal.
+# Every minute: hand newly approved candidates to the GHL workflow "SG - Candidate intake" (inbound
+# webhook; it creates the contact + opportunity and adds the tag that starts the email sequence),
+# then copy GHL pipeline stages back to Supabase for the portal. The course key is read-only,
+# so n8n only READS from the GHL API.
 GHL = "https://services.leadconnectorhq.com"
 F = "$('Prepare GHL records').item.json"
-U = "$('Upsert GHL contact').item.json.contact.id"
 
 
 def ghl(name, pos, method, url, body=None, **extra):
@@ -175,9 +176,11 @@ def ghl(name, pos, method, url, body=None, **extra):
     return node(name, "n8n-nodes-base.httpRequest", 4.2, pos, p, **extra)
 
 
-opp = ghl("Create opportunity", [1540, -100], "POST", GHL + "/opportunities/",
-          body="={{ JSON.stringify({ ...$('Prepare GHL records').item.json.opportunity, contactId: $json.contact.id }) }}")
-opp["onError"] = "continueRegularOutput"   # a duplicate opportunity must not stop the emails
+send = node("Send to GHL", "n8n-nodes-base.httpRequest", 4.2, [1320, -100], {
+    "method": "POST", "url": "={{ $('Settings').first().json.ghl_webhook }}",
+    "sendBody": True, "specifyBody": "json",
+    "jsonBody": "={{ JSON.stringify((({ shortlist_id, ...rest }) => rest)($json)) }}",
+    "options": {"timeout": 30000}})
 save("4 - GHL outreach", [
     node("Every minute", "n8n-nodes-base.scheduleTrigger", 1.2, [0, 0],
          {"rule": {"interval": [{"field": "minutes", "minutesInterval": 1}]}}),
@@ -189,17 +192,11 @@ save("4 - GHL outreach", [
              SB + "/rest/v1/shortlists?select=id,role_id,candidate_id,candidates(full_name,email),roles(title)&stage=eq.approved",
              alwaysOutputData=True),
     node("Prepare GHL records", "n8n-nodes-base.code", 2, [1100, -100], {"jsCode": code("prepare_ghl_records.js")}),
-    ghl("Upsert GHL contact", [1320, -100], "POST", GHL + "/contacts/upsert",
-        body="={{ JSON.stringify($json.contact) }}"),
-    opp,
-    ghl("Add outreach tag", [1760, -100], "POST", "=" + GHL + "/contacts/{{ " + U + " }}/tags",
-        body="={{ JSON.stringify({ tags: [$('Settings').first().json.outreach_tag] }) }}"),
-    supabase("Mark contacted", [1980, -100], "PATCH", "=" + SB + "/rest/v1/shortlists?id=eq.{{ " + F + ".shortlist_id }}",
+    send,
+    supabase("Mark contacted", [1540, -100], "PATCH", "=" + SB + "/rest/v1/shortlists?id=eq.{{ " + F + ".shortlist_id }}",
              body="={{ JSON.stringify({ stage: 'contacted', updated_at: new Date().toISOString() }) }}"),
-    supabase("Save GHL contact id", [2200, -100], "PATCH", "=" + SB + "/rest/v1/candidates?id=eq.{{ " + F + ".candidate_id }}",
-             body="={{ JSON.stringify({ ghl_contact_id: " + U + " }) }}"),
-    node("Summarize", "n8n-nodes-base.code", 2, [2420, -100], {"jsCode": code("summarize_outreach.js")}),
-    slack_msg("Tell recruiter", [2640, -100], CH, "={{ $json.text }}"),
+    node("Summarize", "n8n-nodes-base.code", 2, [1760, -100], {"jsCode": code("summarize_outreach.js")}),
+    slack_msg("Tell recruiter", [1980, -100], CH, "={{ $json.text }}"),
     # --- pull: GHL stages -> Supabase ---
     ghl("Get SG opportunities", [880, 150], "GET",
         "=" + GHL + "/opportunities/search?location_id={{ $('Settings').first().json.location_id }}&pipeline_id={{ $json.pipeline_id }}&limit=100"),
@@ -211,8 +208,7 @@ save("4 - GHL outreach", [
              body="={{ JSON.stringify({ stage: $json.stage, updated_at: new Date().toISOString() }) }}"),
 ], [("Every minute", "Settings", 0), ("Settings", "Get GHL pipelines", 0), ("Get GHL pipelines", "Find pipeline", 0),
     ("Find pipeline", "Get approved shortlist", 0), ("Get approved shortlist", "Prepare GHL records", 0),
-    ("Prepare GHL records", "Upsert GHL contact", 0), ("Upsert GHL contact", "Create opportunity", 0),
-    ("Create opportunity", "Add outreach tag", 0), ("Add outreach tag", "Mark contacted", 0),
-    ("Mark contacted", "Save GHL contact id", 0), ("Save GHL contact id", "Summarize", 0), ("Summarize", "Tell recruiter", 0),
+    ("Prepare GHL records", "Send to GHL", 0), ("Send to GHL", "Mark contacted", 0),
+    ("Mark contacted", "Summarize", 0), ("Summarize", "Tell recruiter", 0),
     ("Find pipeline", "Get SG opportunities", 0), ("Get SG opportunities", "Get current stages", 0),
     ("Get current stages", "Find stage changes", 0), ("Find stage changes", "Update stage", 0)])
