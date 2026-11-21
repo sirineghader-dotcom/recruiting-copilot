@@ -77,7 +77,7 @@ def save(name, nodes, edges):
 
 
 # ---------- Workflow 2: transcript -> job description -> Slack approval ----------
-CH = {"__rl": True, "value": "#recruiting", "mode": "name"}
+CH = {"__rl": True, "value": "C0C8EBS0W2D", "mode": "id"}  # the #recruiting channel
 JD = "$('Parse JD').first().json"
 ROLE_ID = "$('Save role').first().json.id"
 save("2 - Job description approval", [

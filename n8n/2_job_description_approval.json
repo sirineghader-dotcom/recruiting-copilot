@@ -2,7 +2,7 @@
   "name": "2 - Job description approval",
   "nodes": [
     {
-      "id": "37ab6577-d011-420c-8de1-c4108b1bbabc",
+      "id": "1d334297-35f4-4f2a-8158-d630c05675b1",
       "name": "New role form",
       "type": "n8n-nodes-base.formTrigger",
       "typeVersion": 2.2,
@@ -26,7 +26,7 @@
       }
     },
     {
-      "id": "964c2339-8eec-4f6a-ba1f-1eb0f0d14a79",
+      "id": "7f47ed50-1691-424f-99a4-dba5bcb4c123",
       "name": "Build JD request",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -39,7 +39,7 @@
       }
     },
     {
-      "id": "6fdc6972-c17b-445d-85f4-f0e07682c3d4",
+      "id": "a667806a-9c9e-4c69-b1f7-71fb742ff2dd",
       "name": "Ask Gemini",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -64,7 +64,7 @@
       "waitBetweenTries": 5000
     },
     {
-      "id": "368f730a-e299-40fc-8fbc-33c9dc417ba2",
+      "id": "fec43823-50ff-4c20-bb29-53c5a82a617a",
       "name": "Parse JD",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -77,7 +77,7 @@
       }
     },
     {
-      "id": "73a1ac29-c566-4156-92d0-8e547be08e57",
+      "id": "d99104f2-b34b-4a33-9e72-bd5fde1af258",
       "name": "Save role",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -108,7 +108,7 @@
       }
     },
     {
-      "id": "9630dc14-4c79-467e-98ac-cfda706da496",
+      "id": "0a5405f2-086d-41c3-a593-6bc5e7341669",
       "name": "Ask recruiter in Slack",
       "type": "n8n-nodes-base.slack",
       "typeVersion": 2.3,
@@ -121,8 +121,8 @@
         "select": "channel",
         "channelId": {
           "__rl": true,
-          "value": "#recruiting",
-          "mode": "name"
+          "value": "C0C8EBS0W2D",
+          "mode": "id"
         },
         "message": "=:memo: *New job description for approval* (role #{{ $json.id }})\n\n{{ $('Parse JD').first().json.job_description }}\n\nNothing goes to the client until you approve.",
         "approvalOptions": {
@@ -136,7 +136,7 @@
       }
     },
     {
-      "id": "cc227aee-f544-41e2-bda7-54db37f58488",
+      "id": "dff0420f-c816-457c-b193-dc3006a95aa7",
       "name": "Approved?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -154,7 +154,7 @@
           },
           "conditions": [
             {
-              "id": "3595fae3-a687-46c7-b900-5eefc91c6487",
+              "id": "0f0a811e-e731-40a7-b8f3-848fac30a306",
               "leftValue": "={{ $json.data.approved }}",
               "rightValue": true,
               "operator": {
@@ -171,7 +171,7 @@
       }
     },
     {
-      "id": "2da2a8b5-883a-4b75-a44f-fef396ef55c3",
+      "id": "73c59cef-20e2-4512-b823-272af98469e1",
       "name": "Mark approved",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -193,7 +193,7 @@
       }
     },
     {
-      "id": "c4d9ca29-62c7-415a-b12d-88476cdd8b48",
+      "id": "11395fb3-5606-4ebd-875a-5557e35ecbc4",
       "name": "Mark rejected",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -215,7 +215,7 @@
       }
     },
     {
-      "id": "fb0e9e96-3c5e-48f9-8908-fc34f458f716",
+      "id": "c795008a-a9af-45b3-9ae7-cb2dad98cb5e",
       "name": "Confirm approved",
       "type": "n8n-nodes-base.slack",
       "typeVersion": 2.3,
@@ -227,15 +227,15 @@
         "select": "channel",
         "channelId": {
           "__rl": true,
-          "value": "#recruiting",
-          "mode": "name"
+          "value": "C0C8EBS0W2D",
+          "mode": "id"
         },
         "text": "=:white_check_mark: Approved: *{{ $('Parse JD').first().json.title }}* for {{ $('Parse JD').first().json.client_company }} (role #{{ $('Save role').first().json.id }}). It is now an open role and ready to share with the client.",
         "otherOptions": {}
       }
     },
     {
-      "id": "e6d76bae-081e-433c-b584-ca086ae9d32c",
+      "id": "f591856b-7819-4d61-b1b2-2315262be833",
       "name": "Confirm rejected",
       "type": "n8n-nodes-base.slack",
       "typeVersion": 2.3,
@@ -247,8 +247,8 @@
         "select": "channel",
         "channelId": {
           "__rl": true,
-          "value": "#recruiting",
-          "mode": "name"
+          "value": "C0C8EBS0W2D",
+          "mode": "id"
         },
         "text": "=:x: Rejected: *{{ $('Parse JD').first().json.title }}* (role #{{ $('Save role').first().json.id }}). Nothing was sent. Submit the transcript again to get a new draft.",
         "otherOptions": {}

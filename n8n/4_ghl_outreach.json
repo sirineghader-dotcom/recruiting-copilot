@@ -2,7 +2,7 @@
   "name": "4 - GHL outreach",
   "nodes": [
     {
-      "id": "8f137605-42e9-4fd4-8826-848203964e16",
+      "id": "e11bfd97-0ddb-4c06-ae0a-1f38de2b9aaf",
       "name": "Every minute",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
@@ -22,7 +22,7 @@
       }
     },
     {
-      "id": "de9fb9c2-db66-4e62-b408-43231eade759",
+      "id": "a8697410-422c-4d9c-97f2-32adbc50ddec",
       "name": "Settings",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -35,7 +35,7 @@
       }
     },
     {
-      "id": "fd20f97a-79f6-41f1-a0c7-4c34aa917093",
+      "id": "20f67316-ba96-4920-84af-ecb907b99621",
       "name": "Get GHL pipelines",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -63,7 +63,7 @@
       }
     },
     {
-      "id": "98bf845f-8b76-4ac4-b2f9-3e8eec5005e2",
+      "id": "cda69d29-00b3-41c9-9721-13d6622392b2",
       "name": "Find pipeline",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -76,7 +76,7 @@
       }
     },
     {
-      "id": "209b3fdd-f626-4ca4-a480-6bb310d64694",
+      "id": "ac87d495-b380-4e09-8f98-2442a24a6e6f",
       "name": "Get approved shortlist",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -96,7 +96,7 @@
       "alwaysOutputData": true
     },
     {
-      "id": "f54aefc8-e9d0-4763-8166-683d1d41ecd1",
+      "id": "2c1cbc29-6ed0-4c8f-89c1-5aa9407afb8a",
       "name": "Prepare GHL records",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -109,7 +109,7 @@
       }
     },
     {
-      "id": "44c2ff28-e867-45b9-a742-501a4f72500c",
+      "id": "aa79bff2-2816-4a58-9463-127fa84bb52f",
       "name": "Upsert GHL contact",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -140,7 +140,7 @@
       }
     },
     {
-      "id": "1bacf638-716b-413a-b1ab-fecc57b33842",
+      "id": "38ef7da8-6557-4f3f-86fb-d07283864dce",
       "name": "Create opportunity",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -172,7 +172,7 @@
       "onError": "continueRegularOutput"
     },
     {
-      "id": "1da21744-4b8e-457f-867d-a83c8d89aad3",
+      "id": "c8666698-4a20-4170-b528-cc3304c9a43f",
       "name": "Add outreach tag",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -203,7 +203,7 @@
       }
     },
     {
-      "id": "682b4a0b-d949-4faa-b85e-1f65373d672a",
+      "id": "b640794b-a4ee-434b-9732-7e35a8a03dd5",
       "name": "Mark contacted",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -225,7 +225,7 @@
       }
     },
     {
-      "id": "279a63d4-d739-486f-bfbd-591c5a10fba1",
+      "id": "1995a825-9d33-48ad-8062-b38cb1c45d01",
       "name": "Save GHL contact id",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -247,7 +247,7 @@
       }
     },
     {
-      "id": "b5b7eb1c-982f-418c-a84f-ce3f4dc5936e",
+      "id": "e1f3b69a-c147-412f-a45d-0ddbcfbb8665",
       "name": "Summarize",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -260,7 +260,7 @@
       }
     },
     {
-      "id": "276f0108-71b9-4db4-a45c-30775cb3418d",
+      "id": "cbcc6bc3-0c95-472b-9d9c-c7c64de12e0d",
       "name": "Tell recruiter",
       "type": "n8n-nodes-base.slack",
       "typeVersion": 2.3,
@@ -272,15 +272,15 @@
         "select": "channel",
         "channelId": {
           "__rl": true,
-          "value": "#recruiting",
-          "mode": "name"
+          "value": "C0C8EBS0W2D",
+          "mode": "id"
         },
         "text": "={{ $json.text }}",
         "otherOptions": {}
       }
     },
     {
-      "id": "6840bb7e-a549-4cf5-97d4-18f0a67d924e",
+      "id": "144122eb-07be-42ad-8ac7-82c160c2419e",
       "name": "Get SG opportunities",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -308,7 +308,7 @@
       }
     },
     {
-      "id": "13236bf7-6d6f-4c7c-bef1-78b5b96d4a4e",
+      "id": "df39c5ca-127b-43a3-ade8-c71721f0dbcc",
       "name": "Get current stages",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -329,7 +329,7 @@
       "executeOnce": true
     },
     {
-      "id": "eae387f2-65a6-46c1-8584-c742c0099499",
+      "id": "7aee557f-c98a-4722-b719-58150879e76b",
       "name": "Find stage changes",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -342,7 +342,7 @@
       }
     },
     {
-      "id": "30dc72ea-833f-4b6e-84ac-465bbdea9e4e",
+      "id": "0cacdeb9-255f-4a46-aa5f-5cbfc08a09d3",
       "name": "Update stage",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
