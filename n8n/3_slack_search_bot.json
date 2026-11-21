@@ -1,0 +1,480 @@
+{
+  "name": "3 - Slack search bot",
+  "nodes": [
+    {
+      "id": "93524825-4ab2-4618-a08a-813613077130",
+      "name": "Slack question",
+      "type": "n8n-nodes-base.slackTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "trigger": [
+          "app_mention"
+        ],
+        "watchWorkspace": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "c82b3547-5445-4396-ba16-8ed9ad042b09",
+      "name": "Get roles",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "https://irqnsrfhwinvujxkmsmo.supabase.co/rest/v1/roles?select=id,title,client_name,must_haves,nice_to_haves&jd_status=eq.approved",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "id": "58735e10-555f-44f5-a929-8f4bdb986427",
+      "name": "Get candidates",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "https://irqnsrfhwinvujxkmsmo.supabase.co/rest/v1/candidate_profiles?select=*&order=id",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "alwaysOutputData": true,
+      "executeOnce": true
+    },
+    {
+      "id": "049d82a2-4d95-4cb3-b0ef-53a943cce85d",
+      "name": "Build search request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        0
+      ],
+      "parameters": {
+        "jsCode": "// Turn a Slack question into one Gemini request containing every candidate's profile.\nconst event = $('Slack question').first().json;\nconst question = (event.text || '').replace(/<@[^>]+>/g, '').trim();\nif (!question) throw new Error('Empty question');\n\nconst candidates = $('Get candidates').all().map(i => i.json).filter(c => c.id);\nconst roles = $('Get roles').all().map(i => i.json).filter(r => r.id);\n\nconst candidateList = candidates.map(c =>\n  `[id ${c.id}] ${c.full_name} | ${c.headline} | ${c.location}\\n` +\n  `languages: ${(c.languages || []).join(', ')}\\n` +\n  `skills (years): ${c.skills}\\n` +\n  `CV text: ${(c.cv_text || c.summary || '').replace(/\\s+/g, ' ').slice(0, 1500)}`\n).join('\\n\\n');\n\nconst roleList = roles.length\n  ? roles.map(r => `[role ${r.id}] ${r.title} for ${r.client_name}. Must-haves: ${(r.must_haves || []).join('; ')}. Nice-to-haves: ${(r.nice_to_haves || []).join('; ')}`).join('\\n')\n  : '(no open roles)';\n\nconst instructions = `You are a recruiting search assistant. A recruiter asks a question in plain English.\nAnswer ONLY from the candidate list below. Never invent a candidate, a skill, or a number.\n\nHow to answer:\n1. Work out the hard requirements from the question (skills, minimum years, languages, certifications, etc.).\n   If the question names one of the open roles, also use that role's must-haves as hard requirements.\n   Set role_id to that role's id, or 0 if the question is not about a specific role.\n2. Keep only candidates who meet EVERY hard requirement, using the \"skills (years)\" line and the CV text as evidence.\n   \"3+ years\" means years >= 3. A language counts only if it is listed.\n3. Score each kept candidate from 0 to 100:\n   60 points for meeting all hard requirements,\n   up to 25 more for experience beyond the minimum,\n   up to 15 more for nice-to-haves or clearly relevant extras.\n4. Return at most 5, best first. Fewer is fine. If nobody qualifies, return no matches and explain\n   in no_match_reason what was missing (e.g. \"Nobody has both 3+ years of GHL and Arabic. Closest: ...\").\n5. reason: exactly two short lines separated by \"\\\\n\". Line 1: why they fit, with the real numbers.\n   Line 2: the main gap or risk, or a bonus. Under 25 words each.\n\nOpen roles:\n${roleList}`;\n\nconst schema = {\n  type: 'object',\n  properties: {\n    role_id: { type: 'integer' },\n    matches: {\n      type: 'array',\n      items: {\n        type: 'object',\n        properties: { candidate_id: { type: 'integer' }, score: { type: 'integer' }, reason: { type: 'string' } },\n        required: ['candidate_id', 'score', 'reason'],\n        additionalProperties: false\n      }\n    },\n    no_match_reason: { type: 'string' }\n  },\n  required: ['role_id', 'matches', 'no_match_reason'],\n  additionalProperties: false\n};\n\nreturn [{\n  json: {\n    question: question,\n    channel: event.channel,\n    body: {\n      model: 'gemini-3.8-flash',\n      system_instruction: instructions,\n      input: [{ type: 'text', text: `Question: ${question}\\n\\nCandidates (${candidates.length}):\\n\\n${candidateList}` }],\n      response_format: { type: 'text', mime_type: 'application/json', schema: schema }\n    }\n  }\n}];\n"
+      }
+    },
+    {
+      "id": "b62fbb00-05aa-4a6e-a691-dda14f5f19f3",
+      "name": "Ask Gemini",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/interactions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {
+          "timeout": 90000
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "65d5ed18-b74e-4947-8fff-3c6856568afa",
+      "name": "Parse matches",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        0
+      ],
+      "parameters": {
+        "jsCode": "// Check Gemini's answer against the real database before showing it to anyone.\n// Only candidates that exist in the database survive, and names and CV files come\n// from the database, not from the AI, so every recommendation cites a real CV.\nconst reply = $input.first().json;\nconst req = $('Build search request').first().json;\nconst candidates = $('Get candidates').all().map(i => i.json).filter(c => c.id);\nconst roles = $('Get roles').all().map(i => i.json).filter(r => r.id);\nconst byId = new Map(candidates.map(c => [Number(c.id), c]));\n\nlet answer = null;\nlet problem = '';\ntry {\n  if (reply.error) throw new Error(typeof reply.error === 'string' ? reply.error : (reply.error.description || reply.error.message || 'API error'));\n  if (reply.status && reply.status !== 'completed') throw new Error('Gemini did not finish: ' + reply.status);\n  const steps = reply.steps || [];\n  const output = steps.filter(s => s.type === 'model_output').pop() || steps[steps.length - 1];\n  const textPart = ((output && output.content) || []).find(c => c.type === 'text');\n  answer = JSON.parse(textPart ? textPart.text : reply.output_text);\n} catch (e) {\n  problem = e.message;\n}\n\nconst seen = new Set();\nconst matches = ((answer && answer.matches) || [])\n  .filter(m => byId.has(Number(m.candidate_id)) && !seen.has(Number(m.candidate_id)) && seen.add(Number(m.candidate_id)))\n  .map(m => {\n    const c = byId.get(Number(m.candidate_id));\n    return {\n      candidate_id: Number(c.id),\n      name: c.full_name,\n      cv_file: c.cv_file_name,\n      score: Math.max(0, Math.min(100, Math.round(m.score))),\n      reason: String(m.reason || '').trim()\n    };\n  })\n  .sort((a, b) => b.score - a.score)\n  .slice(0, 5);\n\nconst role = roles.find(r => Number(r.id) === Number(answer && answer.role_id));\n\nlet text;\nif (!answer) {\n  text = `:warning: I couldn't answer \"${req.question}\" right now (${problem}). Please ask again in a minute.`;\n} else if (!matches.length) {\n  text = `:mag: *No good match* for \"${req.question}\".\\n${answer.no_match_reason || 'Nobody in the CV database meets all the requirements.'}\\nI won't suggest someone who doesn't fit.`;\n} else {\n  const lines = matches.map((m, i) =>\n    `*${i + 1}. ${m.name}*: ${m.score}/100\\n${m.reason.split('\\n').map(l => '> ' + l).join('\\n')}\\n> :page_facing_up: ${m.cv_file}`);\n  text = `:mag: *Top ${matches.length}* for \"${req.question}\"` +\n    (role ? ` (role #${role.id}: ${role.title})` : '') + `\\n\\n` + lines.join('\\n\\n');\n}\n\nreturn [{\n  json: {\n    question: req.question,\n    channel: req.channel,\n    role_id: role ? Number(role.id) : 0,\n    role_title: role ? role.title : '',\n    matches: matches,\n    candidate_ids: matches.map(m => m.candidate_id).join(','),\n    shortlist_rows: role ? matches.map(m => ({ role_id: Number(role.id), candidate_id: m.candidate_id, score: m.score, reason: m.reason, source_cv: m.cv_file })) : [],\n    text: text\n  }\n}];\n"
+      }
+    },
+    {
+      "id": "363da2aa-135d-4d89-b150-fad30d9aa5d4",
+      "name": "Reply in Slack",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        1320,
+        0
+      ],
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "={{ $('Parse matches').first().json.channel }}",
+          "mode": "id"
+        },
+        "text": "={{ $('Parse matches').first().json.text }}",
+        "otherOptions": {}
+      }
+    },
+    {
+      "id": "f89c01d9-0989-4bc5-9bfd-047a56319d3c",
+      "name": "For a role?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1540,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "274d2fa3-eb60-4167-a8d1-c67e73e583ca",
+              "leftValue": "={{ $('Parse matches').first().json.role_id }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            },
+            {
+              "id": "5480046c-186e-4fb0-84b8-1c811869b725",
+              "leftValue": "={{ $('Parse matches').first().json.matches.length }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "08b52f39-7195-4855-ae72-c50953b468d6",
+      "name": "Save shortlist",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1760,
+        -100
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://irqnsrfhwinvujxkmsmo.supabase.co/rest/v1/shortlists?on_conflict=role_id,candidate_id",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "options": {
+          "timeout": 30000
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Prefer",
+              "value": "resolution=merge-duplicates"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($('Parse matches').first().json.shortlist_rows) }}"
+      },
+      "executeOnce": true
+    },
+    {
+      "id": "cac5b39e-2473-4179-9e2a-a4483923316b",
+      "name": "Ask to approve outreach",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        1980,
+        -100
+      ],
+      "parameters": {
+        "operation": "sendAndWait",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "={{ $('Parse matches').first().json.channel }}",
+          "mode": "id"
+        },
+        "message": "=:envelope: *Approve outreach?*\nRole #{{ $('Parse matches').first().json.role_id }}: {{ $('Parse matches').first().json.role_title }}\nCandidates: {{ $('Parse matches').first().json.matches.map(m => m.name).join(', ') }}\n\nIf you approve, they go into the GHL candidate pipeline and receive the email sequence. Nothing is sent before you approve.",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double",
+            "approveLabel": "Approve outreach",
+            "disapproveLabel": "Don't contact"
+          }
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "8483cf69-f074-414b-b568-563d51b0199b",
+      "name": "Approved?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2200,
+        -100
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "03324bec-f70d-4425-93c9-1953b580f38d",
+              "leftValue": "={{ $json.data.approved }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "a00c68d1-742a-402a-a536-42d473d8b789",
+      "name": "Mark shortlist approved",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2420,
+        -200
+      ],
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://irqnsrfhwinvujxkmsmo.supabase.co/rest/v1/shortlists?role_id=eq.{{ $('Parse matches').first().json.role_id }}&candidate_id=in.({{ $('Parse matches').first().json.candidate_ids }})",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "options": {
+          "timeout": 30000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ stage: 'approved', updated_at: new Date().toISOString() }) }}"
+      }
+    },
+    {
+      "id": "bd48b4d9-877e-4575-933c-8cabc67a156e",
+      "name": "Confirm approved",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        2640,
+        -200
+      ],
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "={{ $('Parse matches').first().json.channel }}",
+          "mode": "id"
+        },
+        "text": "=:white_check_mark: Outreach approved for {{ $('Parse matches').first().json.matches.length }} candidates (role #{{ $('Parse matches').first().json.role_id }}). They are now in the Approved stage.",
+        "otherOptions": {}
+      }
+    },
+    {
+      "id": "f5e84f5d-fe9d-4879-a3ae-dd26662cdf7d",
+      "name": "Confirm not approved",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        2420,
+        0
+      ],
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "={{ $('Parse matches').first().json.channel }}",
+          "mode": "id"
+        },
+        "text": "=:no_entry_sign: Outreach not approved for role #{{ $('Parse matches').first().json.role_id }}. Nobody was contacted. The candidates stay in the Shortlisted stage.",
+        "otherOptions": {}
+      }
+    }
+  ],
+  "connections": {
+    "Slack question": {
+      "main": [
+        [
+          {
+            "node": "Get roles",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get roles": {
+      "main": [
+        [
+          {
+            "node": "Get candidates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get candidates": {
+      "main": [
+        [
+          {
+            "node": "Build search request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build search request": {
+      "main": [
+        [
+          {
+            "node": "Ask Gemini",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ask Gemini": {
+      "main": [
+        [
+          {
+            "node": "Parse matches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse matches": {
+      "main": [
+        [
+          {
+            "node": "Reply in Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Reply in Slack": {
+      "main": [
+        [
+          {
+            "node": "For a role?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "For a role?": {
+      "main": [
+        [
+          {
+            "node": "Save shortlist",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save shortlist": {
+      "main": [
+        [
+          {
+            "node": "Ask to approve outreach",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ask to approve outreach": {
+      "main": [
+        [
+          {
+            "node": "Approved?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Approved?": {
+      "main": [
+        [
+          {
+            "node": "Mark shortlist approved",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Confirm not approved",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark shortlist approved": {
+      "main": [
+        [
+          {
+            "node": "Confirm approved",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}

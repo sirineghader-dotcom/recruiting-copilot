@@ -1,0 +1,370 @@
+{
+  "name": "2 - Job description approval",
+  "nodes": [
+    {
+      "id": "920d224a-12d8-4cbb-9500-34afd635be13",
+      "name": "New role form",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "formTitle": "New role from a client call",
+        "formDescription": "Paste the full call transcript. The AI drafts a job description and sends it to Slack for approval. Nothing is sent to the client until a recruiter approves.",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Call transcript",
+              "fieldType": "textarea",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "f3150eab-37c9-479d-ab41-c3a8909a1a64",
+      "name": "Build JD request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "jsCode": "// Turn a messy call transcript into a request for Gemini to write a clean job description.\nconst transcript = ($input.first().json['Call transcript'] || '').trim();\nif (transcript.length < 200) {\n  throw new Error('The transcript is empty or too short. Paste the whole call.');\n}\n\nconst instructions = `You turn a messy recruiter-client call transcript into a clean job description\nfor a remote-staffing agency. The recruiter will review it before anything is sent.\n\nRules:\n- Use only facts from the transcript. Never invent requirements, salary, hours or dates. Use \"\" or [] when not stated.\n- When the client changes their mind, use the FINAL decision, and mention the change in recruiter_notes.\n- must_haves: only what the client called required. nice_to_haves: what they called a plus or bonus.\n- not_required: things the client explicitly ruled out (e.g. \"No payroll\"), so nobody screens on them.\n- Keep each list item short (under 15 words). Write in clear, friendly English.`;\n\nconst schema = {\n  type: 'object',\n  properties: {\n    title: { type: 'string' },\n    client_company: { type: 'string' },\n    client_location: { type: 'string' },\n    summary: { type: 'string' },\n    responsibilities: { type: 'array', items: { type: 'string' } },\n    must_haves: { type: 'array', items: { type: 'string' } },\n    nice_to_haves: { type: 'array', items: { type: 'string' } },\n    not_required: { type: 'array', items: { type: 'string' } },\n    salary: { type: 'string' },\n    schedule: { type: 'string' },\n    start_date: { type: 'string' },\n    recruiter_notes: { type: 'array', items: { type: 'string' } }\n  },\n  required: ['title', 'client_company', 'client_location', 'summary', 'responsibilities', 'must_haves',\n             'nice_to_haves', 'not_required', 'salary', 'schedule', 'start_date', 'recruiter_notes'],\n  additionalProperties: false\n};\n\nreturn [{\n  json: {\n    body: {\n      model: 'gemini-3.5-flash-lite',\n      system_instruction: instructions,\n      input: [{ type: 'text', text: 'Call transcript:\\n\\n' + transcript }],\n      response_format: { type: 'text', mime_type: 'application/json', schema: schema }\n    }\n  }\n}];\n"
+      }
+    },
+    {
+      "id": "5d875644-f479-414e-b70e-788b3b9174ed",
+      "name": "Ask Gemini",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/interactions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000
+    },
+    {
+      "id": "b0468896-3c09-4d46-885d-df091671b111",
+      "name": "Parse JD",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        0
+      ],
+      "parameters": {
+        "jsCode": "// Read Gemini's job description and format it for Slack and for the database.\nconst reply = $input.first().json;\n\nlet jd = null;\nlet problem = '';\ntry {\n  if (reply.error) throw new Error(typeof reply.error === 'string' ? reply.error : (reply.error.description || reply.error.message || 'API error'));\n  if (reply.status && reply.status !== 'completed') throw new Error('Gemini did not finish: ' + reply.status);\n  const steps = reply.steps || [];\n  const output = steps.filter(s => s.type === 'model_output').pop() || steps[steps.length - 1];\n  const textPart = ((output && output.content) || []).find(c => c.type === 'text');\n  jd = JSON.parse(textPart ? textPart.text : reply.output_text);\n} catch (e) {\n  problem = e.message;\n}\n// Stop loudly instead of saving a broken job description.\nif (!jd) throw new Error('Could not write the job description: ' + problem);\n\nconst bullets = list => (list && list.length ? list.map(x => '• ' + x).join('\\n') : '• (none stated)');\n\nconst text = [\n  `*${jd.title}*: ${jd.client_company}${jd.client_location ? ' (' + jd.client_location + ')' : ''}`,\n  '',\n  jd.summary,\n  '',\n  '*Must-haves*', bullets(jd.must_haves),\n  '',\n  '*Nice-to-haves*', bullets(jd.nice_to_haves),\n  ...(jd.not_required.length ? ['', '*Not required*', bullets(jd.not_required)] : []),\n  '',\n  '*What they will do*', bullets(jd.responsibilities),\n  '',\n  `*Salary:* ${jd.salary || 'not stated'}`,\n  `*Schedule:* ${jd.schedule || 'not stated'}`,\n  `*Start:* ${jd.start_date || 'not stated'}`,\n  ...(jd.recruiter_notes.length ? ['', '_Recruiter notes:_', bullets(jd.recruiter_notes)] : [])\n].join('\\n');\n\nreturn [{ json: { ...jd, job_description: text } }];\n"
+      }
+    },
+    {
+      "id": "ffd97e73-3c93-474a-be8e-f2c10a5d8e73",
+      "name": "Save role",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://irqnsrfhwinvujxkmsmo.supabase.co/rest/v1/roles",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "options": {
+          "timeout": 30000
+        },
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Prefer",
+              "value": "return=representation"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ title: $json.title, client_name: $json.client_company, transcript: $('New role form').first().json['Call transcript'], job_description: $json.job_description, must_haves: $json.must_haves, nice_to_haves: $json.nice_to_haves, jd_status: 'pending_approval' }) }}"
+      }
+    },
+    {
+      "id": "18dca7b6-51b1-4f2f-a1b7-ebea28f01183",
+      "name": "Ask recruiter in Slack",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        1100,
+        0
+      ],
+      "parameters": {
+        "operation": "sendAndWait",
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "#recruiting",
+          "mode": "name"
+        },
+        "message": "=:memo: *New job description for approval* (role #{{ $json.id }})\n\n{{ $('Parse JD').first().json.job_description }}\n\nNothing goes to the client until you approve.",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double",
+            "approveLabel": "Approve",
+            "disapproveLabel": "Reject"
+          }
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "28fd9532-8a64-46ba-9a14-4cdf5c4870f5",
+      "name": "Approved?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1320,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "a187e873-6789-49ea-ba34-7ab9d7179f9a",
+              "leftValue": "={{ $json.data.approved }}",
+              "rightValue": true,
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "190799a1-e384-4212-b3c1-54c031b3954e",
+      "name": "Mark approved",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1540,
+        -100
+      ],
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://irqnsrfhwinvujxkmsmo.supabase.co/rest/v1/roles?id=eq.{{ $('Save role').first().json.id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "options": {
+          "timeout": 30000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ jd_status: 'approved', approved_by: 'Slack approval', approved_at: new Date().toISOString() }) }}"
+      }
+    },
+    {
+      "id": "35c543af-b16e-4337-89b7-98ea72e70699",
+      "name": "Mark rejected",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1540,
+        100
+      ],
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://irqnsrfhwinvujxkmsmo.supabase.co/rest/v1/roles?id=eq.{{ $('Save role').first().json.id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "options": {
+          "timeout": 30000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ jd_status: 'rejected' }) }}"
+      }
+    },
+    {
+      "id": "218101e9-3259-470d-8d47-9bd8f1173da2",
+      "name": "Confirm approved",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        1760,
+        -100
+      ],
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "#recruiting",
+          "mode": "name"
+        },
+        "text": "=:white_check_mark: Approved: *{{ $('Parse JD').first().json.title }}* for {{ $('Parse JD').first().json.client_company }} (role #{{ $('Save role').first().json.id }}). It is now an open role and ready to share with the client.",
+        "otherOptions": {}
+      }
+    },
+    {
+      "id": "78d44d57-3478-49de-96aa-7e29bb4bf10c",
+      "name": "Confirm rejected",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        1760,
+        100
+      ],
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "#recruiting",
+          "mode": "name"
+        },
+        "text": "=:x: Rejected: *{{ $('Parse JD').first().json.title }}* (role #{{ $('Save role').first().json.id }}). Nothing was sent. Submit the transcript again to get a new draft.",
+        "otherOptions": {}
+      }
+    }
+  ],
+  "connections": {
+    "New role form": {
+      "main": [
+        [
+          {
+            "node": "Build JD request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build JD request": {
+      "main": [
+        [
+          {
+            "node": "Ask Gemini",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ask Gemini": {
+      "main": [
+        [
+          {
+            "node": "Parse JD",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse JD": {
+      "main": [
+        [
+          {
+            "node": "Save role",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save role": {
+      "main": [
+        [
+          {
+            "node": "Ask recruiter in Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ask recruiter in Slack": {
+      "main": [
+        [
+          {
+            "node": "Approved?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Approved?": {
+      "main": [
+        [
+          {
+            "node": "Mark approved",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Mark rejected",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark approved": {
+      "main": [
+        [
+          {
+            "node": "Confirm approved",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark rejected": {
+      "main": [
+        [
+          {
+            "node": "Confirm rejected",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}

@@ -1,0 +1,1646 @@
+{
+  "generated_for": "AI Recruiting Copilot test data",
+  "reference_month": "2026-10",
+  "totals": {
+    "files": 60,
+    "unique_people": 55
+  },
+  "messy_cases": {
+    "scanned_image_only": [
+      "scan_0012.pdf"
+    ],
+    "duplicate_submissions": [
+      "MSantos CV final.docx",
+      "Rahul Mehta - CV (1).pdf",
+      "Andrea_Gomez_CV (1).pdf"
+    ],
+    "superseded_old_versions": [
+      "CV_YBenali_2025.docx",
+      "Grace V. - Resume 2024.docx"
+    ]
+  },
+  "files": [
+    {
+      "file": "Omar_Haddad_CV.pdf",
+      "candidate_id": "c01",
+      "kind": "normal",
+      "cv_updated": "2026-08"
+    },
+    {
+      "file": "resume - layla mansour.docx",
+      "candidate_id": "c02",
+      "kind": "normal",
+      "cv_updated": "2026-07"
+    },
+    {
+      "file": "CV_YBenali_2025.docx",
+      "candidate_id": "c03",
+      "kind": "version_1",
+      "cv_updated": "2025-02"
+    },
+    {
+      "file": "Youssef_Benali_CV_Sept2026.pdf",
+      "candidate_id": "c03",
+      "kind": "version_2",
+      "cv_updated": "2026-09"
+    },
+    {
+      "file": "Maria_Santos_Resume.pdf",
+      "candidate_id": "c04",
+      "kind": "normal",
+      "cv_updated": "2026-06"
+    },
+    {
+      "file": "MSantos CV final.docx",
+      "candidate_id": "c04",
+      "kind": "duplicate_submission",
+      "cv_updated": "2026-06"
+    },
+    {
+      "file": "Angela Reyes.docx",
+      "candidate_id": "c05",
+      "kind": "normal",
+      "cv_updated": "2026-08"
+    },
+    {
+      "file": "Ahmed_Khalil_Resume_2026.pdf",
+      "candidate_id": "c06",
+      "kind": "normal",
+      "cv_updated": "2026-09"
+    },
+    {
+      "file": "PriyaNair_CV.docx",
+      "candidate_id": "c07",
+      "kind": "normal",
+      "cv_updated": "2026-05"
+    },
+    {
+      "file": "CarlosMendoza-HV.pdf",
+      "candidate_id": "c08",
+      "kind": "normal",
+      "cv_updated": "2026-08"
+    },
+    {
+      "file": "CV Fatima Zahra El Idrissi.docx",
+      "candidate_id": "c09",
+      "kind": "normal",
+      "cv_updated": "2026-04"
+    },
+    {
+      "file": "Kevin_Otieno_CV.pdf",
+      "candidate_id": "c10",
+      "kind": "normal",
+      "cv_updated": "2026-03"
+    },
+    {
+      "file": "Sofia_Ramirez_CV_EN.pdf",
+      "candidate_id": "c11",
+      "kind": "normal",
+      "cv_updated": "2026-09"
+    },
+    {
+      "file": "Karim Nassar - Resume.docx",
+      "candidate_id": "c12",
+      "kind": "normal",
+      "cv_updated": "2026-07"
+    },
+    {
+      "file": "Ines_Gharbi_CV.pdf",
+      "candidate_id": "c13",
+      "kind": "normal",
+      "cv_updated": "2026-08"
+    },
+    {
+      "file": "Rahul_Mehta_CV.pdf",
+      "candidate_id": "c14",
+      "kind": "normal",
+      "cv_updated": "2026-08"
+    },
+    {
+      "file": "Rahul Mehta - CV (1).pdf",
+      "candidate_id": "c14",
+      "kind": "duplicate_submission",
+      "cv_updated": "2026-08"
+    },
+    {
+      "file": "Joanna_Cruz_FBAds.docx",
+      "candidate_id": "c15",
+      "kind": "normal",
+      "cv_updated": "2026-06"
+    },
+    {
+      "file": "DanielOkafor_Resume.pdf",
+      "candidate_id": "c16",
+      "kind": "normal",
+      "cv_updated": "2026-09"
+    },
+    {
+      "file": "Lucia Fernandez CV 2026.docx",
+      "candidate_id": "c17",
+      "kind": "normal",
+      "cv_updated": "2026-09"
+    },
+    {
+      "file": "Hassan_Raza_PPC.docx",
+      "candidate_id": "c18",
+      "kind": "normal",
+      "cv_updated": "2026-05"
+    },
+    {
+      "file": "T_Mokoena_CV.pdf",
+      "candidate_id": "c19",
+      "kind": "normal",
+      "cv_updated": "2026-09"
+    },
+    {
+      "file": "Mehdi_Alaoui_CV.docx",
+      "candidate_id": "c20",
+      "kind": "normal",
+      "cv_updated": "2026-02"
+    },
+    {
+      "file": "Andrea_Gomez_CV.pdf",
+      "candidate_id": "c21",
+      "kind": "normal",
+      "cv_updated": "2026-08"
+    },
+    {
+      "file": "Andrea_Gomez_CV (1).pdf",
+      "candidate_id": "c21",
+      "kind": "duplicate_submission",
+      "cv_updated": "2026-08"
+    },
+    {
+      "file": "LuisHerrera_CV.docx",
+      "candidate_id": "c22",
+      "kind": "normal",
+      "cv_updated": "2026-07"
+    },
+    {
+      "file": "Camila_Torres_Resume.pdf",
+      "candidate_id": "c23",
+      "kind": "normal",
+      "cv_updated": "2026-09"
+    },
+    {
+      "file": "Diego Morales CV.pdf",
+      "candidate_id": "c24",
+      "kind": "normal",
+      "cv_updated": "2026-08"
+    },
+    {
+      "file": "GabyPerez.docx",
+      "candidate_id": "c25",
+      "kind": "normal",
+      "cv_updated": "2026-09"
+    },
+    {
+      "file": "JDelaCruz_Resume.pdf",
+      "candidate_id": "c26",
+      "kind": "normal",
+      "cv_updated": "2026-07"
+    },
+    {
+      "file": "Ricardo_Silva_CV.docx",
+      "candidate_id": "c27",
+      "kind": "normal",
+      "cv_updated": "2026-06"
+    },
+    {
+      "file": "Valeria_Castro_CV.pdf",
+      "candidate_id": "c28",
+      "kind": "normal",
+      "cv_updated": "2026-08"
+    },
+    {
+      "file": "Sara Benjelloun.docx",
+      "candidate_id": "c29",
+      "kind": "normal",
+      "cv_updated": "2026-05"
+    },
+    {
+      "file": "Marco_Ruiz_CV.pdf",
+      "candidate_id": "c30",
+      "kind": "normal",
+      "cv_updated": "2026-09"
+    },
+    {
+      "file": "Grace V. - Resume 2024.docx",
+      "candidate_id": "c31",
+      "kind": "version_1",
+      "cv_updated": "2024-05"
+    },
+    {
+      "file": "GraceVillanueva_MedicalVA_2026.pdf",
+      "candidate_id": "c31",
+      "kind": "version_2",
+      "cv_updated": "2026-08"
+    },
+    {
+      "file": "Joy_Mercado_MedVA.docx",
+      "candidate_id": "c32",
+      "kind": "normal",
+      "cv_updated": "2026-08"
+    },
+    {
+      "file": "Mariam_Saleh_CV.pdf",
+      "candidate_id": "c33",
+      "kind": "normal",
+      "cv_updated": "2026-07"
+    },
+    {
+      "file": "Patricia_Lim_Resume.pdf",
+      "candidate_id": "c34",
+      "kind": "normal",
+      "cv_updated": "2026-09"
+    },
+    {
+      "file": "scan_0012.pdf",
+      "candidate_id": "c35",
+      "kind": "scanned_image_only",
+      "cv_updated": "2026-06"
+    },
+    {
+      "file": "CV_Nadia_Bouzid.docx",
+      "candidate_id": "c36",
+      "kind": "normal",
+      "cv_updated": "2026-04"
+    },
+    {
+      "file": "Rosa_Martinez_Resume.docx",
+      "candidate_id": "c37",
+      "kind": "normal",
+      "cv_updated": "2026-08"
+    },
+    {
+      "file": "Anjali_Sharma_Scribe.pdf",
+      "candidate_id": "c38",
+      "kind": "normal",
+      "cv_updated": "2026-06"
+    },
+    {
+      "file": "Michelle_Tan_RN_MedVA.pdf",
+      "candidate_id": "c39",
+      "kind": "normal",
+      "cv_updated": "2026-09"
+    },
+    {
+      "file": "Chidi_Eze_CV.docx",
+      "candidate_id": "c40",
+      "kind": "normal",
+      "cv_updated": "2026-08"
+    },
+    {
+      "file": "Rania_Aziz_Bookkeeper.pdf",
+      "candidate_id": "c41",
+      "kind": "normal",
+      "cv_updated": "2026-08"
+    },
+    {
+      "file": "MA_Bautista_Resume.docx",
+      "candidate_id": "c42",
+      "kind": "normal",
+      "cv_updated": "2026-07"
+    },
+    {
+      "file": "Elena_Popescu_CV.pdf",
+      "candidate_id": "c43",
+      "kind": "normal",
+      "cv_updated": "2026-09"
+    },
+    {
+      "file": "Sipho Ndlovu CV.docx",
+      "candidate_id": "c44",
+      "kind": "normal",
+      "cv_updated": "2026-08"
+    },
+    {
+      "file": "Ayesha_Siddiqui_Resume.pdf",
+      "candidate_id": "c45",
+      "kind": "normal",
+      "cv_updated": "2026-07"
+    },
+    {
+      "file": "JP_Ortiz.docx",
+      "candidate_id": "c46",
+      "kind": "normal",
+      "cv_updated": "2026-09"
+    },
+    {
+      "file": "Lina_Khoury_CV.pdf",
+      "candidate_id": "c47",
+      "kind": "normal",
+      "cv_updated": "2026-08"
+    },
+    {
+      "file": "Ferdinand_Ocampo_Resume.docx",
+      "candidate_id": "c48",
+      "kind": "normal",
+      "cv_updated": "2026-06"
+    },
+    {
+      "file": "Zainab_Bello_CV.pdf",
+      "candidate_id": "c49",
+      "kind": "normal",
+      "cv_updated": "2026-08"
+    },
+    {
+      "file": "CV Tomas Aguirre.docx",
+      "candidate_id": "c50",
+      "kind": "normal",
+      "cv_updated": "2026-03"
+    },
+    {
+      "file": "BeaSantiago_Design_CV.pdf",
+      "candidate_id": "c51",
+      "kind": "normal",
+      "cv_updated": "2026-05"
+    },
+    {
+      "file": "Usman_Tariq_Dev.docx",
+      "candidate_id": "c52",
+      "kind": "normal",
+      "cv_updated": "2026-07"
+    },
+    {
+      "file": "Hana_Mostafa_CV.pdf",
+      "candidate_id": "c53",
+      "kind": "normal",
+      "cv_updated": "2026-04"
+    },
+    {
+      "file": "Paolo_Gutierrez_Editor.docx",
+      "candidate_id": "c54",
+      "kind": "normal",
+      "cv_updated": "2026-06"
+    },
+    {
+      "file": "amira cv.pdf",
+      "candidate_id": "c55",
+      "kind": "normal",
+      "cv_updated": "2026-02"
+    }
+  ],
+  "candidates": [
+    {
+      "id": "c01",
+      "name": "Omar Haddad",
+      "email": "omar.haddad@example.com",
+      "location": "Amman, Jordan",
+      "headline": "GoHighLevel Automation Specialist",
+      "current_file": "Omar_Haddad_CV.pdf",
+      "languages": [
+        "Arabic (native)",
+        "English (C1, professional)"
+      ],
+      "certs": [
+        "HighLevel Certified Admin (2023)"
+      ],
+      "skill_years": {
+        "api": 4.4,
+        "email_marketing": 2.8,
+        "ghl": 4.4,
+        "n8n": 4.4,
+        "webhooks": 4.4,
+        "zapier": 4.4
+      },
+      "all_files": [
+        "Omar_Haddad_CV.pdf"
+      ]
+    },
+    {
+      "id": "c02",
+      "name": "Layla Mansour",
+      "email": "layla.mansour@example.org",
+      "location": "Cairo, Egypt",
+      "headline": "CRM & Automation Specialist (HighLevel / Make)",
+      "current_file": "resume - layla mansour.docx",
+      "languages": [
+        "Arabic - native",
+        "English - fluent"
+      ],
+      "certs": [],
+      "skill_years": {
+        "customer_success": 2.6,
+        "ghl": 3.8,
+        "make": 3.8,
+        "zapier": 3.8
+      },
+      "all_files": [
+        "resume - layla mansour.docx"
+      ]
+    },
+    {
+      "id": "c03",
+      "name": "Youssef Benali",
+      "email": "y.benali@example.net",
+      "location": "Casablanca, Morocco",
+      "headline": "GoHighLevel Automation Specialist",
+      "current_file": "Youssef_Benali_CV_Sept2026.pdf",
+      "languages": [
+        "Arabic (native)",
+        "French (fluent)",
+        "English (B2)"
+      ],
+      "certs": [],
+      "skill_years": {
+        "ghl": 2.2,
+        "n8n": 1.4,
+        "phone_support": 2.7,
+        "webhooks": 1.4,
+        "zapier": 2.2
+      },
+      "all_files": [
+        "CV_YBenali_2025.docx",
+        "Youssef_Benali_CV_Sept2026.pdf"
+      ]
+    },
+    {
+      "id": "c04",
+      "name": "Maria Santos",
+      "email": "maria.santos.va@example.com",
+      "location": "Cebu City, Philippines",
+      "headline": "Senior GHL Specialist",
+      "current_file": "Maria_Santos_Resume.pdf",
+      "languages": [
+        "English (fluent)",
+        "Tagalog (native)",
+        "Cebuano (native)"
+      ],
+      "certs": [
+        "HighLevel Certified Admin (2022)"
+      ],
+      "skill_years": {
+        "admin": 2.4,
+        "api": 5.2,
+        "ghl": 5.2,
+        "zapier": 5.2
+      },
+      "all_files": [
+        "Maria_Santos_Resume.pdf",
+        "MSantos CV final.docx"
+      ]
+    },
+    {
+      "id": "c05",
+      "name": "Angela Reyes",
+      "email": "angela.reyes@example.com",
+      "location": "Davao City, Philippines",
+      "headline": "GHL Virtual Assistant",
+      "current_file": "Angela Reyes.docx",
+      "languages": [
+        "English",
+        "Tagalog"
+      ],
+      "certs": [],
+      "skill_years": {
+        "admin": 3.4,
+        "ghl": 1.2,
+        "zapier": 1.2
+      },
+      "all_files": [
+        "Angela Reyes.docx"
+      ]
+    },
+    {
+      "id": "c06",
+      "name": "Ahmed Khalil",
+      "email": "ahmed.khalil.dev@example.org",
+      "location": "Tunis, Tunisia",
+      "headline": "Automation Freelancer | GoHighLevel + n8n",
+      "current_file": "Ahmed_Khalil_Resume_2026.pdf",
+      "languages": [
+        "Arabic (native)",
+        "French (C2)",
+        "English (C1)"
+      ],
+      "certs": [],
+      "skill_years": {
+        "api": 5.8,
+        "ghl": 1.6,
+        "n8n": 1.6,
+        "webdev": 4.2
+      },
+      "all_files": [
+        "Ahmed_Khalil_Resume_2026.pdf"
+      ]
+    },
+    {
+      "id": "c07",
+      "name": "Priya Nair",
+      "email": "priya.nair@example.com",
+      "location": "Kochi, India",
+      "headline": "Marketing Automation Specialist",
+      "current_file": "PriyaNair_CV.docx",
+      "languages": [
+        "English (fluent)",
+        "Hindi",
+        "Malayalam (native)"
+      ],
+      "certs": [],
+      "skill_years": {
+        "api": 3.1,
+        "email_marketing": 3.3,
+        "ghl": 3.1,
+        "mailchimp": 3.3,
+        "n8n": 3.1,
+        "zapier": 3.1
+      },
+      "all_files": [
+        "PriyaNair_CV.docx"
+      ]
+    },
+    {
+      "id": "c08",
+      "name": "Carlos Mendoza",
+      "email": "carlos.mendoza@example.net",
+      "location": "Medellín, Colombia",
+      "headline": "Go High Level Builder",
+      "current_file": "CarlosMendoza-HV.pdf",
+      "languages": [
+        "Spanish (native)",
+        "English (C1)"
+      ],
+      "certs": [],
+      "skill_years": {
+        "ghl": 2.6,
+        "sales": 3.2,
+        "zapier": 2.6
+      },
+      "all_files": [
+        "CarlosMendoza-HV.pdf"
+      ]
+    },
+    {
+      "id": "c09",
+      "name": "Fatima Zahra El Idrissi",
+      "email": "fz.elidrissi@example.com",
+      "location": "Rabat, Morocco",
+      "headline": "Funnel & Email Automation Specialist",
+      "current_file": "CV Fatima Zahra El Idrissi.docx",
+      "languages": [
+        "Arabic (native)",
+        "French (fluent)",
+        "English (B2)"
+      ],
+      "certs": [],
+      "skill_years": {
+        "activecampaign": 4.7,
+        "clickfunnels": 6.2,
+        "zapier": 4.7
+      },
+      "all_files": [
+        "CV Fatima Zahra El Idrissi.docx"
+      ]
+    },
+    {
+      "id": "c10",
+      "name": "Kevin Otieno",
+      "email": "kevin.otieno@example.org",
+      "location": "Nairobi, Kenya",
+      "headline": "HubSpot Automation Consultant",
+      "current_file": "Kevin_Otieno_CV.pdf",
+      "languages": [
+        "English (fluent)",
+        "Swahili (native)"
+      ],
+      "certs": [
+        "HubSpot Operations Hub Certification (2024)"
+      ],
+      "skill_years": {
+        "api": 3.4,
+        "hubspot": 5.5,
+        "zapier": 3.4
+      },
+      "all_files": [
+        "Kevin_Otieno_CV.pdf"
+      ]
+    },
+    {
+      "id": "c11",
+      "name": "Sofía Ramírez",
+      "email": "sofia.ramirez@example.com",
+      "location": "Buenos Aires, Argentina",
+      "headline": "Senior Paid Media Manager (E-commerce)",
+      "current_file": "Sofia_Ramirez_CV_EN.pdf",
+      "languages": [
+        "Spanish (native)",
+        "English (C2)",
+        "Portuguese (B1)"
+      ],
+      "certs": [
+        "Google Ads Search Certification (2025)",
+        "Meta Certified Media Buying Professional (2024)"
+      ],
+      "skill_years": {
+        "ga4": 5.7,
+        "google_ads": 5.7,
+        "klaviyo": 5.7,
+        "meta_ads": 7.8
+      },
+      "all_files": [
+        "Sofia_Ramirez_CV_EN.pdf"
+      ]
+    },
+    {
+      "id": "c12",
+      "name": "Karim Nassar",
+      "email": "karim.nassar@example.net",
+      "location": "Beirut, Lebanon",
+      "headline": "Performance Marketing Lead",
+      "current_file": "Karim Nassar - Resume.docx",
+      "languages": [
+        "Arabic (native)",
+        "French (C1)",
+        "English (C1)"
+      ],
+      "certs": [],
+      "skill_years": {
+        "ga4": 4.5,
+        "ghl": 2.2,
+        "google_ads": 6.2,
+        "meta_ads": 6.2
+      },
+      "all_files": [
+        "Karim Nassar - Resume.docx"
+      ]
+    },
+    {
+      "id": "c13",
+      "name": "Ines Gharbi",
+      "email": "ines.gharbi@example.org",
+      "location": "Tunis, Tunisia",
+      "headline": "Paid Ads Specialist, E-commerce",
+      "current_file": "Ines_Gharbi_CV.pdf",
+      "languages": [
+        "French (C2)",
+        "Arabic (native)",
+        "English (C1)"
+      ],
+      "certs": [],
+      "skill_years": {
+        "ga4": 3.2,
+        "google_ads": 3.2,
+        "meta_ads": 3.2,
+        "social_media": 2.2
+      },
+      "all_files": [
+        "Ines_Gharbi_CV.pdf"
+      ]
+    },
+    {
+      "id": "c14",
+      "name": "Rahul Mehta",
+      "email": "rahul.mehta@example.com",
+      "location": "Pune, India",
+      "headline": "Head of Paid Media",
+      "current_file": "Rahul_Mehta_CV.pdf",
+      "languages": [
+        "English (fluent)",
+        "Hindi (native)",
+        "Marathi (native)"
+      ],
+      "certs": [
+        "Google Ads Shopping Certification (2025)"
+      ],
+      "skill_years": {
+        "ga4": 6.8,
+        "google_ads": 6.8,
+        "meta_ads": 2.3
+      },
+      "all_files": [
+        "Rahul_Mehta_CV.pdf",
+        "Rahul Mehta - CV (1).pdf"
+      ]
+    },
+    {
+      "id": "c15",
+      "name": "Joanna Cruz",
+      "email": "joanna.cruz@example.org",
+      "location": "Manila, Philippines",
+      "headline": "Facebook Ads Specialist",
+      "current_file": "Joanna_Cruz_FBAds.docx",
+      "languages": [
+        "English",
+        "Tagalog"
+      ],
+      "certs": [],
+      "skill_years": {
+        "meta_ads": 3.8,
+        "social_media": 1.7
+      },
+      "all_files": [
+        "Joanna_Cruz_FBAds.docx"
+      ]
+    },
+    {
+      "id": "c16",
+      "name": "Daniel Okafor",
+      "email": "daniel.okafor@example.com",
+      "location": "Lagos, Nigeria",
+      "headline": "Digital Marketing Specialist",
+      "current_file": "DanielOkafor_Resume.pdf",
+      "languages": [
+        "English (native)",
+        "Yoruba (native)"
+      ],
+      "certs": [
+        "Google Analytics Certification (2024)"
+      ],
+      "skill_years": {
+        "ga4": 2.2,
+        "google_ads": 2.2,
+        "meta_ads": 2.2,
+        "social_media": 0.8
+      },
+      "all_files": [
+        "DanielOkafor_Resume.pdf"
+      ]
+    },
+    {
+      "id": "c17",
+      "name": "Lucía Fernández",
+      "email": "lucia.fernandez@example.net",
+      "location": "Guadalajara, Mexico",
+      "headline": "E-commerce Growth Marketer (Beauty & Skincare)",
+      "current_file": "Lucia Fernandez CV 2026.docx",
+      "languages": [
+        "Spanish (native)",
+        "English (C1)"
+      ],
+      "certs": [],
+      "skill_years": {
+        "ga4": 4.8,
+        "google_ads": 4.8,
+        "klaviyo": 4.8,
+        "meta_ads": 4.8,
+        "social_media": 2.1
+      },
+      "all_files": [
+        "Lucia Fernandez CV 2026.docx"
+      ]
+    },
+    {
+      "id": "c18",
+      "name": "Hassan Raza",
+      "email": "hassan.raza@example.org",
+      "location": "Lahore, Pakistan",
+      "headline": "PPC & Social Ads Specialist",
+      "current_file": "Hassan_Raza_PPC.docx",
+      "languages": [
+        "English (fluent)",
+        "Urdu (native)",
+        "Punjabi"
+      ],
+      "certs": [
+        "Google Ads Search Certification (2024)"
+      ],
+      "skill_years": {
+        "ga4": 3.7,
+        "google_ads": 4.8,
+        "meta_ads": 3.7
+      },
+      "all_files": [
+        "Hassan_Raza_PPC.docx"
+      ]
+    },
+    {
+      "id": "c19",
+      "name": "Thandiwe Mokoena",
+      "email": "thandiwe.mokoena@example.com",
+      "location": "Cape Town, South Africa",
+      "headline": "Head of Performance Marketing",
+      "current_file": "T_Mokoena_CV.pdf",
+      "languages": [
+        "English (native)",
+        "isiZulu (native)",
+        "Afrikaans"
+      ],
+      "certs": [],
+      "skill_years": {
+        "ga4": 5.8,
+        "ghl": 1.1,
+        "google_ads": 7.6,
+        "klaviyo": 5.8,
+        "meta_ads": 7.6
+      },
+      "all_files": [
+        "T_Mokoena_CV.pdf"
+      ]
+    },
+    {
+      "id": "c20",
+      "name": "Mehdi Alaoui",
+      "email": "mehdi.alaoui@example.net",
+      "location": "Marrakech, Morocco",
+      "headline": "SEO & Content Manager",
+      "current_file": "Mehdi_Alaoui_CV.docx",
+      "languages": [
+        "French (C2)",
+        "Arabic (native)",
+        "English (B2)"
+      ],
+      "certs": [],
+      "skill_years": {
+        "content": 2.3,
+        "seo": 5.2
+      },
+      "all_files": [
+        "Mehdi_Alaoui_CV.docx"
+      ]
+    },
+    {
+      "id": "c21",
+      "name": "Andrea Gómez",
+      "email": "andrea.gomez@example.com",
+      "location": "Bogotá, Colombia",
+      "headline": "Bilingual Patient Support Representative",
+      "current_file": "Andrea_Gomez_CV.pdf",
+      "languages": [
+        "Spanish (native)",
+        "English (C1)"
+      ],
+      "certs": [],
+      "skill_years": {
+        "chat_support": 3.5,
+        "healthcare": 3.5,
+        "phone_support": 5.7,
+        "zendesk": 3.5
+      },
+      "all_files": [
+        "Andrea_Gomez_CV.pdf",
+        "Andrea_Gomez_CV (1).pdf"
+      ]
+    },
+    {
+      "id": "c22",
+      "name": "Luis Herrera",
+      "email": "luis.herrera@example.org",
+      "location": "Monterrey, Mexico",
+      "headline": "Bilingual Customer Service Agent",
+      "current_file": "LuisHerrera_CV.docx",
+      "languages": [
+        "Spanish (native)",
+        "English (B2)"
+      ],
+      "certs": [],
+      "skill_years": {
+        "freshdesk": 2.4,
+        "phone_support": 2.4,
+        "retail": 2.4
+      },
+      "all_files": [
+        "LuisHerrera_CV.docx"
+      ]
+    },
+    {
+      "id": "c23",
+      "name": "Camila Torres",
+      "email": "camila.torres@example.net",
+      "location": "Córdoba, Argentina",
+      "headline": "Customer Support Team Lead",
+      "current_file": "Camila_Torres_Resume.pdf",
+      "languages": [
+        "Spanish (native)",
+        "English (C2)",
+        "Portuguese (C1)"
+      ],
+      "certs": [],
+      "skill_years": {
+        "chat_support": 5.0,
+        "intercom": 3.8,
+        "phone_support": 3.8,
+        "zendesk": 5.0
+      },
+      "all_files": [
+        "Camila_Torres_Resume.pdf"
+      ]
+    },
+    {
+      "id": "c24",
+      "name": "Diego Morales",
+      "email": "diego.morales@example.com",
+      "location": "Cali, Colombia",
+      "headline": "Customer Success Representative",
+      "current_file": "Diego Morales CV.pdf",
+      "languages": [
+        "Spanish (native)",
+        "English (B2)"
+      ],
+      "certs": [],
+      "skill_years": {
+        "chat_support": 1.7,
+        "hubspot": 1.7,
+        "phone_support": 1.7
+      },
+      "all_files": [
+        "Diego Morales CV.pdf"
+      ]
+    },
+    {
+      "id": "c25",
+      "name": "Gabriela Pérez",
+      "email": "gabriela.perez@example.org",
+      "location": "Puebla, Mexico",
+      "headline": "Customer Support Trainee",
+      "current_file": "GabyPerez.docx",
+      "languages": [
+        "Spanish (native)",
+        "English (B2)"
+      ],
+      "certs": [],
+      "skill_years": {
+        "chat_support": 0.6,
+        "retail": 3.2,
+        "zendesk": 0.6
+      },
+      "all_files": [
+        "GabyPerez.docx"
+      ]
+    },
+    {
+      "id": "c26",
+      "name": "Jasmine Dela Cruz",
+      "email": "jasmine.delacruz@example.com",
+      "location": "Quezon City, Philippines",
+      "headline": "Senior Customer Care Specialist (Healthcare)",
+      "current_file": "JDelaCruz_Resume.pdf",
+      "languages": [
+        "English (fluent)",
+        "Tagalog (native)"
+      ],
+      "certs": [
+        "HIPAA Awareness Training (2024)"
+      ],
+      "skill_years": {
+        "healthcare": 5.2,
+        "phone_support": 6.8,
+        "zendesk": 5.2
+      },
+      "all_files": [
+        "JDelaCruz_Resume.pdf"
+      ]
+    },
+    {
+      "id": "c27",
+      "name": "Ricardo Silva",
+      "email": "ricardo.silva@example.net",
+      "location": "São Paulo, Brazil",
+      "headline": "Multilingual Support Agent (PT/ES/EN)",
+      "current_file": "Ricardo_Silva_CV.docx",
+      "languages": [
+        "Portuguese (native)",
+        "Spanish (C1)",
+        "English (C1)"
+      ],
+      "certs": [],
+      "skill_years": {
+        "chat_support": 3.3,
+        "freshdesk": 3.3,
+        "phone_support": 3.3,
+        "retail": 2.3
+      },
+      "all_files": [
+        "Ricardo_Silva_CV.docx"
+      ]
+    },
+    {
+      "id": "c28",
+      "name": "Valeria Castro",
+      "email": "valeria.castro@example.com",
+      "location": "Lima, Peru",
+      "headline": "Bilingual Health Insurance Call Center Agent",
+      "current_file": "Valeria_Castro_CV.pdf",
+      "languages": [
+        "Spanish (native)",
+        "English (C1)"
+      ],
+      "certs": [],
+      "skill_years": {
+        "healthcare": 3.8,
+        "phone_support": 2.2,
+        "zendesk": 2.2
+      },
+      "all_files": [
+        "Valeria_Castro_CV.pdf"
+      ]
+    },
+    {
+      "id": "c29",
+      "name": "Sara Benjelloun",
+      "email": "sara.benjelloun@example.org",
+      "location": "Fès, Morocco",
+      "headline": "Customer Support Agent (FR/EN)",
+      "current_file": "Sara Benjelloun.docx",
+      "languages": [
+        "Arabic (native)",
+        "French (C2)",
+        "English (C1)",
+        "Spanish (B1)"
+      ],
+      "certs": [],
+      "skill_years": {
+        "chat_support": 3.6,
+        "phone_support": 3.6,
+        "zendesk": 3.6
+      },
+      "all_files": [
+        "Sara Benjelloun.docx"
+      ]
+    },
+    {
+      "id": "c30",
+      "name": "Marco Antonio Ruiz",
+      "email": "marco.ruiz@example.net",
+      "location": "Tijuana, Mexico",
+      "headline": "Front Desk & Phone Coordinator (Dental)",
+      "current_file": "Marco_Ruiz_CV.pdf",
+      "languages": [
+        "Spanish (native)",
+        "English (C2)"
+      ],
+      "certs": [],
+      "skill_years": {
+        "freshdesk": 4.5,
+        "healthcare": 4.5,
+        "phone_support": 4.5,
+        "retail": 2.2
+      },
+      "all_files": [
+        "Marco_Ruiz_CV.pdf"
+      ]
+    },
+    {
+      "id": "c31",
+      "name": "Grace Villanueva",
+      "email": "grace.villanueva@example.com",
+      "location": "Iloilo City, Philippines",
+      "headline": "Senior Medical Virtual Assistant",
+      "current_file": "GraceVillanueva_MedicalVA_2026.pdf",
+      "languages": [
+        "English (fluent)",
+        "Filipino (native)",
+        "Hiligaynon (native)"
+      ],
+      "certs": [
+        "HIPAA Compliance Certificate (2022, renewed 2025)"
+      ],
+      "skill_years": {
+        "athenahealth": 1.8,
+        "eclinicalworks": 2.4,
+        "hipaa": 4.2,
+        "insurance_verification": 1.8,
+        "medical_admin": 4.2,
+        "prior_auth": 1.8
+      },
+      "all_files": [
+        "Grace V. - Resume 2024.docx",
+        "GraceVillanueva_MedicalVA_2026.pdf"
+      ]
+    },
+    {
+      "id": "c32",
+      "name": "Joy Mercado",
+      "email": "joy.mercado@example.org",
+      "location": "Bacolod City, Philippines",
+      "headline": "Medical Receptionist VA",
+      "current_file": "Joy_Mercado_MedVA.docx",
+      "languages": [
+        "English (fluent)",
+        "Filipino (native)"
+      ],
+      "certs": [
+        "HIPAA Training Certificate (2024)"
+      ],
+      "skill_years": {
+        "eclinicalworks": 2.3,
+        "hipaa": 2.3,
+        "medical_admin": 2.3,
+        "pharmacy": 2.3
+      },
+      "all_files": [
+        "Joy_Mercado_MedVA.docx"
+      ]
+    },
+    {
+      "id": "c33",
+      "name": "Mariam Saleh",
+      "email": "mariam.saleh@example.net",
+      "location": "Alexandria, Egypt",
+      "headline": "Medical Office Administrator (US clinic, remote)",
+      "current_file": "Mariam_Saleh_CV.pdf",
+      "languages": [
+        "Arabic (native)",
+        "English (C1)"
+      ],
+      "certs": [
+        "HIPAA for Healthcare Workers (2023)"
+      ],
+      "skill_years": {
+        "athenahealth": 3.4,
+        "hipaa": 3.4,
+        "medical_admin": 5.2
+      },
+      "all_files": [
+        "Mariam_Saleh_CV.pdf"
+      ]
+    },
+    {
+      "id": "c34",
+      "name": "Patricia Lim",
+      "email": "patricia.lim@example.com",
+      "location": "Makati, Philippines",
+      "headline": "Medical Virtual Assistant",
+      "current_file": "Patricia_Lim_Resume.pdf",
+      "languages": [
+        "English",
+        "Filipino"
+      ],
+      "certs": [
+        "HIPAA Training (2025)"
+      ],
+      "skill_years": {
+        "hipaa": 1.1,
+        "kareo": 1.1,
+        "medical_admin": 1.1,
+        "phone_support": 3.3
+      },
+      "all_files": [
+        "Patricia_Lim_Resume.pdf"
+      ]
+    },
+    {
+      "id": "c35",
+      "name": "Esther Wanjiru",
+      "email": "esther.wanjiru@example.org",
+      "location": "Nairobi, Kenya",
+      "headline": "Medical Virtual Assistant",
+      "current_file": "scan_0012.pdf",
+      "languages": [
+        "English (fluent)",
+        "Swahili (native)"
+      ],
+      "certs": [
+        "HIPAA Compliance Training (2021)"
+      ],
+      "skill_years": {
+        "eclinicalworks": 5.1,
+        "hipaa": 5.1,
+        "insurance_verification": 5.1,
+        "medical_admin": 7.8,
+        "prior_auth": 5.1
+      },
+      "all_files": [
+        "scan_0012.pdf"
+      ]
+    },
+    {
+      "id": "c36",
+      "name": "Nadia Bouzid",
+      "email": "nadia.bouzid@example.net",
+      "location": "Sousse, Tunisia",
+      "headline": "Medical Scheduling Assistant",
+      "current_file": "CV_Nadia_Bouzid.docx",
+      "languages": [
+        "Arabic (native)",
+        "French (C2)",
+        "English (B2)"
+      ],
+      "certs": [],
+      "skill_years": {
+        "admin": 2.2,
+        "medical_admin": 2.7
+      },
+      "all_files": [
+        "CV_Nadia_Bouzid.docx"
+      ]
+    },
+    {
+      "id": "c37",
+      "name": "Rosa Martínez",
+      "email": "rosa.martinez@example.com",
+      "location": "Mérida, Mexico",
+      "headline": "Medical Billing & Admin Specialist",
+      "current_file": "Rosa_Martinez_Resume.docx",
+      "languages": [
+        "Spanish (native)",
+        "English (C1)"
+      ],
+      "certs": [
+        "HIPAA Certification (2023)"
+      ],
+      "skill_years": {
+        "athenahealth": 3.5,
+        "hipaa": 3.5,
+        "insurance_verification": 3.5,
+        "medical_admin": 3.5
+      },
+      "all_files": [
+        "Rosa_Martinez_Resume.docx"
+      ]
+    },
+    {
+      "id": "c38",
+      "name": "Anjali Sharma",
+      "email": "anjali.sharma@example.org",
+      "location": "Jaipur, India",
+      "headline": "Remote Medical Scribe",
+      "current_file": "Anjali_Sharma_Scribe.pdf",
+      "languages": [
+        "English (fluent)",
+        "Hindi (native)"
+      ],
+      "certs": [
+        "HIPAA Training (2022)"
+      ],
+      "skill_years": {
+        "epic": 4.1,
+        "hipaa": 4.1,
+        "medical_admin": 4.1
+      },
+      "all_files": [
+        "Anjali_Sharma_Scribe.pdf"
+      ]
+    },
+    {
+      "id": "c39",
+      "name": "Michelle Tan",
+      "email": "michelle.tan@example.net",
+      "location": "Quezon City, Philippines",
+      "headline": "Medical Virtual Assistant | Former RN",
+      "current_file": "Michelle_Tan_RN_MedVA.pdf",
+      "languages": [
+        "English (fluent)",
+        "Filipino (native)"
+      ],
+      "certs": [
+        "Philippine RN License",
+        "HIPAA Compliance Certificate (2021)"
+      ],
+      "skill_years": {
+        "athenahealth": 6.0,
+        "eclinicalworks": 6.0,
+        "hipaa": 6.0,
+        "insurance_verification": 6.0,
+        "medical_admin": 6.0,
+        "nursing": 6.4,
+        "prior_auth": 6.0
+      },
+      "all_files": [
+        "Michelle_Tan_RN_MedVA.pdf"
+      ]
+    },
+    {
+      "id": "c40",
+      "name": "Chidi Eze",
+      "email": "chidi.eze@example.com",
+      "location": "Enugu, Nigeria",
+      "headline": "Medical Administrative Assistant (Remote)",
+      "current_file": "Chidi_Eze_CV.docx",
+      "languages": [
+        "English (native)",
+        "Igbo (native)"
+      ],
+      "certs": [
+        "HIPAA Training (2024)"
+      ],
+      "skill_years": {
+        "drchrono": 2.2,
+        "hipaa": 2.2,
+        "medical_admin": 2.2
+      },
+      "all_files": [
+        "Chidi_Eze_CV.docx"
+      ]
+    },
+    {
+      "id": "c41",
+      "name": "Rania Aziz",
+      "email": "rania.aziz@example.org",
+      "location": "Amman, Jordan",
+      "headline": "Senior Bookkeeper (US CPA firms)",
+      "current_file": "Rania_Aziz_Bookkeeper.pdf",
+      "languages": [
+        "Arabic (native)",
+        "English (C1)"
+      ],
+      "certs": [
+        "QuickBooks Online ProAdvisor - Advanced (2025)"
+      ],
+      "skill_years": {
+        "accounting": 2.4,
+        "qbo": 5.3,
+        "reconciliations": 5.3,
+        "us_clients": 5.3,
+        "xero": 5.3
+      },
+      "all_files": [
+        "Rania_Aziz_Bookkeeper.pdf"
+      ]
+    },
+    {
+      "id": "c42",
+      "name": "Mark Anthony Bautista",
+      "email": "mark.bautista@example.com",
+      "location": "Angeles City, Philippines",
+      "headline": "Bookkeeper | QuickBooks ProAdvisor",
+      "current_file": "MA_Bautista_Resume.docx",
+      "languages": [
+        "English (fluent)",
+        "Filipino (native)",
+        "Kapampangan"
+      ],
+      "certs": [
+        "QuickBooks Online ProAdvisor (2023)"
+      ],
+      "skill_years": {
+        "qbo": 6.8,
+        "reconciliations": 6.8,
+        "us_clients": 4.2
+      },
+      "all_files": [
+        "MA_Bautista_Resume.docx"
+      ]
+    },
+    {
+      "id": "c43",
+      "name": "Elena Popescu",
+      "email": "elena.popescu@example.net",
+      "location": "Cluj-Napoca, Romania",
+      "headline": "Bookkeeper (US & UK clients)",
+      "current_file": "Elena_Popescu_CV.pdf",
+      "languages": [
+        "Romanian (native)",
+        "English (C1)"
+      ],
+      "certs": [
+        "Xero Advisor Certification (2024)"
+      ],
+      "skill_years": {
+        "qbo": 3.2,
+        "reconciliations": 3.2,
+        "us_clients": 3.2,
+        "xero": 3.2
+      },
+      "all_files": [
+        "Elena_Popescu_CV.pdf"
+      ]
+    },
+    {
+      "id": "c44",
+      "name": "Sipho Ndlovu",
+      "email": "sipho.ndlovu@example.com",
+      "location": "Johannesburg, South Africa",
+      "headline": "Senior Bookkeeper",
+      "current_file": "Sipho Ndlovu CV.docx",
+      "languages": [
+        "English (native)",
+        "isiZulu (native)"
+      ],
+      "certs": [
+        "Xero Advisor Certification (2021)"
+      ],
+      "skill_years": {
+        "qbo": 1.2,
+        "reconciliations": 6.8,
+        "sage": 5.7,
+        "us_clients": 1.2,
+        "xero": 5.7
+      },
+      "all_files": [
+        "Sipho Ndlovu CV.docx"
+      ]
+    },
+    {
+      "id": "c45",
+      "name": "Ayesha Siddiqui",
+      "email": "ayesha.siddiqui@example.org",
+      "location": "Karachi, Pakistan",
+      "headline": "Remote Bookkeeper",
+      "current_file": "Ayesha_Siddiqui_Resume.pdf",
+      "languages": [
+        "English (fluent)",
+        "Urdu (native)"
+      ],
+      "certs": [],
+      "skill_years": {
+        "qbo": 3.6,
+        "reconciliations": 3.6,
+        "us_clients": 3.6
+      },
+      "all_files": [
+        "Ayesha_Siddiqui_Resume.pdf"
+      ]
+    },
+    {
+      "id": "c46",
+      "name": "Juan Pablo Ortiz",
+      "email": "juanpablo.ortiz@example.net",
+      "location": "Barranquilla, Colombia",
+      "headline": "Bookkeeping Assistant",
+      "current_file": "JP_Ortiz.docx",
+      "languages": [
+        "Spanish (native)",
+        "English (B2)"
+      ],
+      "certs": [],
+      "skill_years": {
+        "qbo": 2.1,
+        "reconciliations": 2.1,
+        "us_clients": 2.1
+      },
+      "all_files": [
+        "JP_Ortiz.docx"
+      ]
+    },
+    {
+      "id": "c47",
+      "name": "Lina Khoury",
+      "email": "lina.khoury@example.com",
+      "location": "Beirut, Lebanon",
+      "headline": "Bookkeeper | QuickBooks ProAdvisor",
+      "current_file": "Lina_Khoury_CV.pdf",
+      "languages": [
+        "Arabic (native)",
+        "French (C1)",
+        "English (C1)"
+      ],
+      "certs": [
+        "QuickBooks Online ProAdvisor (2024)"
+      ],
+      "skill_years": {
+        "accounting": 1.8,
+        "qbo": 4.4,
+        "reconciliations": 4.4,
+        "us_clients": 4.4,
+        "xero": 4.4
+      },
+      "all_files": [
+        "Lina_Khoury_CV.pdf"
+      ]
+    },
+    {
+      "id": "c48",
+      "name": "Ferdinand Ocampo",
+      "email": "ferdinand.ocampo@example.org",
+      "location": "Manila, Philippines",
+      "headline": "Senior Bookkeeper (US CPA firm)",
+      "current_file": "Ferdinand_Ocampo_Resume.docx",
+      "languages": [
+        "English (fluent)",
+        "Filipino (native)"
+      ],
+      "certs": [
+        "QuickBooks Online ProAdvisor - Advanced (2022)"
+      ],
+      "skill_years": {
+        "qbo": 7.7,
+        "reconciliations": 7.7,
+        "us_clients": 7.7
+      },
+      "all_files": [
+        "Ferdinand_Ocampo_Resume.docx"
+      ]
+    },
+    {
+      "id": "c49",
+      "name": "Zainab Bello",
+      "email": "zainab.bello@example.net",
+      "location": "Abuja, Nigeria",
+      "headline": "Bookkeeper (UK clients)",
+      "current_file": "Zainab_Bello_CV.pdf",
+      "languages": [
+        "English (native)",
+        "Hausa (native)"
+      ],
+      "certs": [],
+      "skill_years": {
+        "qbo": 3.8,
+        "reconciliations": 3.8,
+        "uk_clients": 3.8
+      },
+      "all_files": [
+        "Zainab_Bello_CV.pdf"
+      ]
+    },
+    {
+      "id": "c50",
+      "name": "Tomás Aguirre",
+      "email": "tomas.aguirre@example.com",
+      "location": "Rosario, Argentina",
+      "headline": "Contador Público / Accountant",
+      "current_file": "CV Tomas Aguirre.docx",
+      "languages": [
+        "Spanish (native)",
+        "English (B1)"
+      ],
+      "certs": [],
+      "skill_years": {
+        "accounting": 5.5,
+        "sap": 5.5
+      },
+      "all_files": [
+        "CV Tomas Aguirre.docx"
+      ]
+    },
+    {
+      "id": "c51",
+      "name": "Bea Santiago",
+      "email": "bea.santiago@example.org",
+      "location": "Manila, Philippines",
+      "headline": "Graphic Designer",
+      "current_file": "BeaSantiago_Design_CV.pdf",
+      "languages": [
+        "English",
+        "Filipino"
+      ],
+      "certs": [],
+      "skill_years": {
+        "design": 5.8
+      },
+      "all_files": [
+        "BeaSantiago_Design_CV.pdf"
+      ]
+    },
+    {
+      "id": "c52",
+      "name": "Usman Tariq",
+      "email": "usman.tariq@example.com",
+      "location": "Islamabad, Pakistan",
+      "headline": "Full-Stack Developer",
+      "current_file": "Usman_Tariq_Dev.docx",
+      "languages": [
+        "English (fluent)",
+        "Urdu (native)"
+      ],
+      "certs": [],
+      "skill_years": {
+        "api": 6.3,
+        "webdev": 6.3
+      },
+      "all_files": [
+        "Usman_Tariq_Dev.docx"
+      ]
+    },
+    {
+      "id": "c53",
+      "name": "Hana Mostafa",
+      "email": "hana.mostafa@example.net",
+      "location": "Giza, Egypt",
+      "headline": "ESL Teacher",
+      "current_file": "Hana_Mostafa_CV.pdf",
+      "languages": [
+        "Arabic (native)",
+        "English (C2)"
+      ],
+      "certs": [
+        "CELTA (2020)"
+      ],
+      "skill_years": {
+        "teaching": 7.2
+      },
+      "all_files": [
+        "Hana_Mostafa_CV.pdf"
+      ]
+    },
+    {
+      "id": "c54",
+      "name": "Paolo Gutierrez",
+      "email": "paolo.gutierrez@example.org",
+      "location": "Cebu City, Philippines",
+      "headline": "Video Editor",
+      "current_file": "Paolo_Gutierrez_Editor.docx",
+      "languages": [
+        "English",
+        "Cebuano"
+      ],
+      "certs": [],
+      "skill_years": {
+        "video": 4.7
+      },
+      "all_files": [
+        "Paolo_Gutierrez_Editor.docx"
+      ]
+    },
+    {
+      "id": "c55",
+      "name": "Amira Ben Salah",
+      "email": "amira.bensalah@example.com",
+      "location": "Bizerte, Tunisia",
+      "headline": "Data Entry Clerk",
+      "current_file": "amira cv.pdf",
+      "languages": [
+        "Arabic (native)",
+        "French (fluent)",
+        "English (B1)"
+      ],
+      "certs": [],
+      "skill_years": {
+        "data_entry": 6.4
+      },
+      "all_files": [
+        "amira cv.pdf"
+      ]
+    }
+  ]
+}

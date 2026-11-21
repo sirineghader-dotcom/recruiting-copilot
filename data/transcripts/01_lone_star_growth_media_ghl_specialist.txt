@@ -1,0 +1,83 @@
+Sarah: Hi Mike, it's Sarah from RemoteBridge Staffing. Can you hear me okay?
+
+Mike: Yeah, yeah, I got you. Sorry, I'm in the car, so if I cut out just yell at me.
+
+Sarah: No problem at all. Thanks for making time. How's everything going over at Lone Star Growth?
+
+Mike: Honestly? Busy. Good busy, mostly. We picked up four new clients last month, two of them are med spas, and our onboarding is just, it's a mess. Everything lives in HighLevel and right now it's me and one guy doing all the builds at like eleven at night.
+
+Sarah: That's actually a great problem to have. So that's what this role is about? Someone to own the GoHighLevel side?
+
+Mike: Exactly. I need a GoHighLevel person. Like a real one. Not somebody who watched two YouTube videos and calls themselves an expert. I've been burned on that.
+
+Sarah: Tell me about that, what happened with the last hire?
+
+Mike: Oh man. So we hired this guy last year, great interview, super confident. First week he deletes a live workflow for one of our biggest accounts. Didn't duplicate it, didn't back it up, just gone. Took us two days to rebuild the nurture sequence and the client almost walked. So, yeah. I'm a little gun-shy.
+
+Sarah: That's rough. Okay, so let's make sure we screen hard on real experience. When you say a real GHL person, what are they actually building day to day?
+
+Mike: Workflows, mostly. Lead comes in from a Facebook form or a funnel, it gets tagged, goes into the right pipeline, gets the SMS and email follow-ups, appointment reminders, all that. Funnels too, landing pages, the booking calendars. And pipelines, setting up the stages for each client so their sales people actually use it. Snapshots would be nice, we resell a snapshot for med spas.
+
+Sarah: Got it. And how many years of experience are you thinking?
+
+Mike: I'd say three years. Minimum three.
+
+Sarah: Okay, three years of GoHighLevel specifically.
+
+Mike: Yeah. Well, hang on. Actually, HighLevel hasn't even been big for that long, right? Like, it really blew up maybe 2021, 2022. If I say three years I'm probably cutting out a bunch of good people. Let's say two. Two years of real hands-on GHL is fine, as long as they've actually built stuff for paying clients.
+
+Sarah: Two years, hands-on, client work. Perfect, that's very doable. What about other tools? Anything they need to connect GHL to?
+
+Mike: Yeah, so we use Zapier a ton. Some of the newer stuff we've been moving to n8n because Zapier is getting expensive. So they need to know one of those. Zapier or n8n. Doesn't matter which, but one of them for sure, and they need to actually be comfortable in it, not just copy a template.
+
+Sarah: Zapier or n8n is a must. Anything more technical than that? APIs?
+
+Mike: That'd be a bonus. If they understand webhooks and can hit an API, like pull data from a client's booking software into GHL, that's amazing. But I'm not hiring a developer. It's a nice-to-have.
+
+Sarah: Okay. And communication, obviously they'll be talking to your team. English level?
+
+Mike: Fluent. They're going to be on calls with my clients sometimes, so their English has to be really good. Not perfect accent, I don't care about accent, but fluent. They need to be able to explain stuff to a dentist who doesn't know what a trigger is.
+
+Sarah: Makes sense. Any other languages that would help?
+
+Mike: Oh, actually yes, good question. So we have, this is kind of random, but we've got two clients in Dubai now. A clinic and a real estate guy. And their front desk people, a lot of them prefer Arabic. So if the person speaks Arabic, that's a big plus. Like a big plus. Not required, but if you've got two equal people and one speaks Arabic, I'm taking that one.
+
+Sarah: Arabic as a strong nice-to-have. Got it. Let's talk logistics. What hours would they work?
+
+Mike: We're in Austin, so Central time. I don't need them on my hours all day, I know they're probably overseas. But I need at least four hours of overlap with Central. Like if they can be on from, say, nine to one my time, that works.
+
+Sarah: At least four hours overlap with US Central. And timing, when do you want someone to start?
+
+Mike: Yesterday. Ha. No, realistically, within three weeks. We have a big launch for one of the med spas at the start of next month and I want them ramped by then.
+
+Sarah: Within three weeks, okay. And budget, what range are you working with for this?
+
+Mike: Uh. You know, it depends on the person. If they're amazing I'll pay for amazing.
+
+Sarah: Totally fair. Just so I don't send you people way outside your range, roughly what are you thinking per month, full-time?
+
+Mike: I mean, the last guy was at like fifteen hundred and that obviously didn't work out. I don't know. What's normal?
+
+Sarah: For a solid GHL specialist with two-plus years, from the regions we recruit in, we usually see somewhere between eighteen hundred and twenty-five hundred a month.
+
+Mike: Okay. Yeah, I can do eighteen hundred to twenty-two hundred. Twenty-two is my ceiling unless they're a unicorn.
+
+Sarah: Perfect, eighteen hundred to twenty-two hundred a month, full-time. Is it full-time, by the way?
+
+Mike: Yeah, full-time, forty hours. Monday to Friday. Some weekend stuff around launches but rare.
+
+Sarah: Great. Who would they report to?
+
+Mike: Me, for now. Eventually I want them to lead a small automation team if this works. So someone who can grow, that'd be nice. Not a requirement.
+
+Sarah: Love that. Anything that's an absolute dealbreaker?
+
+Mike: Yeah. If they've never built for real clients, no. And if they're juggling three other jobs, no. I need someone who's actually with us.
+
+Sarah: Understood. Okay, let me read back what I have. GoHighLevel Automation Specialist, full-time, remote. Must have two-plus years of hands-on GoHighLevel, workflows, funnels, pipelines, for real clients. Must know Zapier or n8n. Fluent English. Big plus for Arabic, nice-to-have for APIs and webhooks. Four hours overlap with Central, start within three weeks, eighteen hundred to twenty-two hundred a month.
+
+Mike: That's it. You nailed it. Oh, and snapshots, if they've built snapshots, that's cool too. Small thing.
+
+Sarah: Noted. I'll get a job description over to you for approval first, then we'll start sourcing.
+
+Mike: Sounds good. Thanks, Sarah. Talk soon.
