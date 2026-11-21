@@ -62,7 +62,7 @@ return [{
     question: question,
     channel: event.channel,
     body: {
-      model: 'gemini-3.8-flash',
+      model: 'gemini-3.5-flash-lite',
       system_instruction: instructions,
       input: [{ type: 'text', text: `Question: ${question}\n\nCandidates (${candidates.length}):\n\n${candidateList}` }],
       response_format: { type: 'text', mime_type: 'application/json', schema: schema }
