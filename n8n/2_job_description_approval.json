@@ -2,7 +2,7 @@
   "name": "2 - Job description approval",
   "nodes": [
     {
-      "id": "f810f0ec-ca8a-470c-a0f6-cdb914847f1e",
+      "id": "37ab6577-d011-420c-8de1-c4108b1bbabc",
       "name": "New role form",
       "type": "n8n-nodes-base.formTrigger",
       "typeVersion": 2.2,
@@ -26,7 +26,7 @@
       }
     },
     {
-      "id": "558ef132-1122-4d6c-ba03-4cf855c5c78c",
+      "id": "964c2339-8eec-4f6a-ba1f-1eb0f0d14a79",
       "name": "Build JD request",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -39,7 +39,7 @@
       }
     },
     {
-      "id": "6dc6107b-6a65-4379-81c9-c9fc58276d8e",
+      "id": "6fdc6972-c17b-445d-85f4-f0e07682c3d4",
       "name": "Ask Gemini",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -64,7 +64,7 @@
       "waitBetweenTries": 5000
     },
     {
-      "id": "6f1a3d30-e805-48cb-99b3-716f16503333",
+      "id": "368f730a-e299-40fc-8fbc-33c9dc417ba2",
       "name": "Parse JD",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -77,7 +77,7 @@
       }
     },
     {
-      "id": "8e108ca6-e5a4-4fa3-8d5a-e4481603fcfc",
+      "id": "73a1ac29-c566-4156-92d0-8e547be08e57",
       "name": "Save role",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -108,7 +108,7 @@
       }
     },
     {
-      "id": "1b544025-f88d-4fee-85c0-d1d8a7a31575",
+      "id": "9630dc14-4c79-467e-98ac-cfda706da496",
       "name": "Ask recruiter in Slack",
       "type": "n8n-nodes-base.slack",
       "typeVersion": 2.3,
@@ -136,7 +136,7 @@
       }
     },
     {
-      "id": "199b83d5-9cbc-419c-a205-898a3c9f5543",
+      "id": "cc227aee-f544-41e2-bda7-54db37f58488",
       "name": "Approved?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
@@ -154,7 +154,7 @@
           },
           "conditions": [
             {
-              "id": "a3fdcafb-278e-4a5b-a440-34a6491a8177",
+              "id": "3595fae3-a687-46c7-b900-5eefc91c6487",
               "leftValue": "={{ $json.data.approved }}",
               "rightValue": true,
               "operator": {
@@ -171,7 +171,7 @@
       }
     },
     {
-      "id": "ba791a8d-fe60-461d-a797-86ca8bbd164a",
+      "id": "2da2a8b5-883a-4b75-a44f-fef396ef55c3",
       "name": "Mark approved",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -193,7 +193,7 @@
       }
     },
     {
-      "id": "c19813c4-43f0-423c-8ed8-45579a10a18e",
+      "id": "c4d9ca29-62c7-415a-b12d-88476cdd8b48",
       "name": "Mark rejected",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -215,7 +215,7 @@
       }
     },
     {
-      "id": "a2dcdfe4-152d-4fd9-a96e-e6ee36a293ea",
+      "id": "fb0e9e96-3c5e-48f9-8908-fc34f458f716",
       "name": "Confirm approved",
       "type": "n8n-nodes-base.slack",
       "typeVersion": 2.3,
@@ -235,7 +235,7 @@
       }
     },
     {
-      "id": "c84dff83-bef8-439e-9fc6-fc807186c8ac",
+      "id": "e6d76bae-081e-433c-b584-ca086ae9d32c",
       "name": "Confirm rejected",
       "type": "n8n-nodes-base.slack",
       "typeVersion": 2.3,
