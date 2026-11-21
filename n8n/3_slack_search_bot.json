@@ -2,7 +2,7 @@
   "name": "3 - Slack search bot",
   "nodes": [
     {
-      "id": "d9e2b0d7-0f22-4aed-9700-7b0aa3b06848",
+      "id": "54c9b450-68ff-42a2-9980-3ad6745b6804",
       "name": "Slack question",
       "type": "n8n-nodes-base.slackTrigger",
       "typeVersion": 1,
@@ -19,7 +19,7 @@
       }
     },
     {
-      "id": "4f3ef95b-db02-4a11-9e8d-b3e6cd684be4",
+      "id": "fb657866-d126-4777-a399-077b002bc098",
       "name": "Get roles",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -39,7 +39,7 @@
       "alwaysOutputData": true
     },
     {
-      "id": "5e617fa9-6c6d-4110-826b-a830ad8268df",
+      "id": "62b11dc1-5034-4193-a70b-4c1c324b458e",
       "name": "Get candidates",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -60,8 +60,8 @@
       "executeOnce": true
     },
     {
-      "id": "0b0f1216-096a-41d8-8a78-6313b8e943ed",
-      "name": "Build search request",
+      "id": "430a8358-b738-41b7-ae33-1286adc1e478",
+      "name": "Build filter request",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
@@ -69,17 +69,103 @@
         0
       ],
       "parameters": {
-        "jsCode": "// Turn a Slack question into one Gemini request containing every candidate's profile.\nconst event = $('Slack question').first().json;\nconst question = (event.text || '').replace(/<@[^>]+>/g, '').trim();\nif (!question) throw new Error('Empty question');\n\nconst candidates = $('Get candidates').all().map(i => i.json).filter(c => c.id);\nconst roles = $('Get roles').all().map(i => i.json).filter(r => r.id);\n\nconst candidateList = candidates.map(c =>\n  `[id ${c.id}] ${c.full_name} | ${c.headline} | ${c.location}\\n` +\n  `languages: ${(c.languages || []).join(', ')}\\n` +\n  `skills (years): ${c.skills}\\n` +\n  `CV text: ${(c.cv_text || c.summary || '').replace(/\\s+/g, ' ').slice(0, 1500)}`\n).join('\\n\\n');\n\nconst roleList = roles.length\n  ? roles.map(r => `[role ${r.id}] ${r.title} for ${r.client_name}. Must-haves: ${(r.must_haves || []).join('; ')}. Nice-to-haves: ${(r.nice_to_haves || []).join('; ')}`).join('\\n')\n  : '(no open roles)';\n\nconst instructions = `You are a recruiting search assistant. A recruiter asks a question in plain English.\nAnswer ONLY from the candidate list below. Never invent a candidate, a skill, or a number.\n\nHow to answer:\n1. Work out the hard requirements from the question (skills, minimum years, languages, certifications, etc.).\n   If the question names one of the open roles, also use that role's must-haves as hard requirements.\n   Set role_id to that role's id, or 0 if the question is not about a specific role.\n2. Keep only candidates who meet EVERY hard requirement, using the \"skills (years)\" line and the CV text as evidence.\n   \"3+ years\" means years >= 3. A language counts only if it is listed.\n3. Score each kept candidate from 0 to 100:\n   60 points for meeting all hard requirements,\n   up to 25 more for experience beyond the minimum,\n   up to 15 more for nice-to-haves or clearly relevant extras.\n4. Return at most 5, best first. Fewer is fine. If nobody qualifies, return no matches and explain\n   in no_match_reason what was missing (e.g. \"Nobody has both 3+ years of GHL and Arabic. Closest: ...\").\n5. reason: exactly two short lines separated by \"\\\\n\". Line 1: why they fit, with the real numbers.\n   Line 2: the main gap or risk, or a bonus. Under 25 words each.\n\nOpen roles:\n${roleList}`;\n\nconst schema = {\n  type: 'object',\n  properties: {\n    role_id: { type: 'integer' },\n    matches: {\n      type: 'array',\n      items: {\n        type: 'object',\n        properties: { candidate_id: { type: 'integer' }, score: { type: 'integer' }, reason: { type: 'string' } },\n        required: ['candidate_id', 'score', 'reason'],\n        additionalProperties: false\n      }\n    },\n    no_match_reason: { type: 'string' }\n  },\n  required: ['role_id', 'matches', 'no_match_reason'],\n  additionalProperties: false\n};\n\nreturn [{\n  json: {\n    question: question,\n    channel: event.channel,\n    body: {\n      model: 'gemini-3.5-flash-lite',\n      system_instruction: instructions,\n      input: [{ type: 'text', text: `Question: ${question}\\n\\nCandidates (${candidates.length}):\\n\\n${candidateList}` }],\n      response_format: { type: 'text', mime_type: 'application/json', schema: schema }\n    }\n  }\n}];\n"
+        "jsCode": "// Step 1 of the search: ask Gemini to turn the question into exact rules.\n// Gemini does NOT pick candidates here; code checks the rules in the next step.\nconst event = $('Slack question').first().json;\nconst question = (event.text || '').replace(/<@[^>]+>/g, '').trim();\nif (!question) throw new Error('Empty question');\n\nconst roles = $('Get roles').all().map(i => i.json).filter(r => r.id);\nconst roleList = roles.length\n  ? roles.map(r => `[role ${r.id}] ${r.title} for ${r.client_name}. Must-haves: ${(r.must_haves || []).join('; ')}. Nice-to-haves: ${(r.nice_to_haves || []).join('; ')}`).join('\\n')\n  : '(no open roles)';\n\nconst instructions = `You turn a recruiter's question into search rules for a CV database. Do not answer the question.\n\nSkill names (use exactly these when they apply): gohighlevel, zapier, n8n, make, api_webhooks, hubspot,\nclickfunnels, activecampaign, meta_ads, google_ads, ga4, klaviyo, tiktok_ads, seo,\nphone_support, chat_support, zendesk, freshdesk, intercom, healthcare, medical_admin, hipaa,\nathenahealth, eclinicalworks, epic, insurance_verification, prior_auth,\nquickbooks_online, xero, sage, bank_reconciliations, us_clients, uk_clients.\n\nRules:\n- requirements: every hard requirement that is a skill. Each requirement is a list of acceptable options (any_of).\n  \"3+ years of GHL\" -> [{skill: gohighlevel, min_years: 3}].\n  \"Zapier or n8n\" -> ONE requirement with two options.\n  \"1+ year of phone or chat support\" -> ONE requirement: phone_support 1 or chat_support 1.\n  A skill with no number -> min_years 0.\n- languages: languages the candidate must speak, lowercase English names (e.g. \"arabic\").\n- other_requirements: hard requirements that are not a listed skill or a language\n  (e.g. \"managed $20k+/month in ad spend\", \"QuickBooks ProAdvisor certification\").\n- nice_to_haves: things that are a plus but not required.\n- If the question names or clearly refers to one of the open roles, set role_id to it and include that\n  role's must-haves as requirements/languages/other_requirements, and its nice-to-haves as nice_to_haves.\n  Otherwise role_id is 0 and you use only what the question says.\n\nOpen roles:\n${roleList}`;\n\nconst option = {\n  type: 'object',\n  properties: { skill: { type: 'string' }, min_years: { type: 'number' } },\n  required: ['skill', 'min_years'], additionalProperties: false\n};\nconst schema = {\n  type: 'object',\n  properties: {\n    role_id: { type: 'integer' },\n    requirements: {\n      type: 'array',\n      items: { type: 'object', properties: { any_of: { type: 'array', items: option } }, required: ['any_of'], additionalProperties: false }\n    },\n    languages: { type: 'array', items: { type: 'string' } },\n    other_requirements: { type: 'array', items: { type: 'string' } },\n    nice_to_haves: { type: 'array', items: { type: 'string' } }\n  },\n  required: ['role_id', 'requirements', 'languages', 'other_requirements', 'nice_to_haves'],\n  additionalProperties: false\n};\n\nreturn [{\n  json: {\n    question: question,\n    channel: event.channel,\n    body: {\n      model: 'gemini-3.5-flash-lite',\n      system_instruction: instructions,\n      input: [{ type: 'text', text: 'Question: ' + question }],\n      response_format: { type: 'text', mime_type: 'application/json', schema: schema }\n    }\n  }\n}];\n"
       }
     },
     {
-      "id": "3a55affc-0a5c-4a4f-8df2-5521e56828db",
-      "name": "Ask Gemini",
+      "id": "6ef08b60-81a1-44ec-991c-e2dafe3bfa30",
+      "name": "Ask Gemini (rules)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
         880,
         0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/interactions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "bfa910d5-2422-4f0e-995a-9bc5cf774b45",
+      "name": "Apply filters",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        0
+      ],
+      "parameters": {
+        "jsCode": "// Step 2 of the search: check EVERY candidate against the rules, in plain code.\n// Code never overlooks anyone, so the shortlist can't miss a qualified person.\nconst req = $('Build filter request').first().json;\nconst reply = $input.first().json;\n\nfunction geminiJson(r) {\n  if (r.error) throw new Error(typeof r.error === 'string' ? r.error : (r.error.description || r.error.message || 'API error'));\n  if (r.status && r.status !== 'completed') throw new Error('Gemini did not finish: ' + r.status);\n  const steps = r.steps || [];\n  const output = steps.filter(s => s.type === 'model_output').pop() || steps[steps.length - 1];\n  const textPart = ((output && output.content) || []).find(c => c.type === 'text');\n  return JSON.parse(textPart ? textPart.text : r.output_text);\n}\n\nlet rules = null;\nlet problem = '';\ntry { rules = geminiJson(reply); } catch (e) { problem = e.message; }\n\n// \"gohighlevel 3.7y, make 3.7y\" -> { gohighlevel: 3.7, make: 3.7 }\nconst parseSkills = text => Object.fromEntries((text || '').split(',').map(s => s.trim()).filter(Boolean).map(s => {\n  const m = s.match(/^(.*)\\s([\\d.]+)y$/);\n  return m ? [m[1].trim().toLowerCase(), parseFloat(m[2])] : [s.toLowerCase(), 0];\n}));\n\nconst describe = r => r.any_of.map(o => o.min_years > 0 ? `${o.skill} ${o.min_years}+ yrs` : o.skill).join(' or ');\n\nconst candidates = $('Get candidates').all().map(i => i.json).filter(c => c.id);\nconst matched = [];\nconst nearMisses = [];\n\nif (rules) {\n  const requirements = (rules.requirements || []).filter(r => (r.any_of || []).length);\n  const languages = (rules.languages || []).map(l => l.toLowerCase().trim()).filter(Boolean);\n\n  for (const c of candidates) {\n    const skills = parseSkills(c.skills);\n    const langs = (c.languages || []).map(l => String(l).toLowerCase());\n    const missing = [];\n\n    for (const r of requirements) {\n      const ok = r.any_of.some(o => (skills[String(o.skill).toLowerCase()] ?? -1) >= (o.min_years || 0));\n      if (!ok) {\n        const has = r.any_of.map(o => skills[String(o.skill).toLowerCase()]).filter(v => v !== undefined);\n        missing.push(describe(r) + (has.length ? ` (has ${Math.max(...has)} yrs)` : ''));\n      }\n    }\n    for (const l of languages) if (!langs.includes(l)) missing.push('speaks ' + l);\n\n    // How much experience beyond the minimum, used to keep the best when there are many.\n    const extra = requirements.reduce((sum, r) => sum + Math.max(0, ...r.any_of.map(o => (skills[String(o.skill).toLowerCase()] ?? 0) - (o.min_years || 0))), 0);\n\n    if (!missing.length) matched.push({ ...c, extra });\n    else if (missing.length === 1) nearMisses.push({ name: c.full_name, cv_file: c.cv_file_name, missing: missing[0] });\n  }\n  matched.sort((a, b) => b.extra - a.extra);\n}\n\nreturn [{\n  json: {\n    question: req.question,\n    channel: req.channel,\n    problem: problem,\n    rules: rules,\n    rules_text: rules ? [...(rules.requirements || []).map(describe), ...(rules.languages || []).map(l => 'speaks ' + l), ...(rules.other_requirements || [])].join(', ') : '',\n    matched: matched.slice(0, 25),\n    matched_count: matched.length,\n    near_misses: nearMisses.slice(0, 3)\n  }\n}];\n"
+      }
+    },
+    {
+      "id": "25ca0940-b82c-4bf5-952b-64d04936f4bf",
+      "name": "Anyone qualifies?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1320,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "50545865-4d62-4fbe-9e5b-d82a13844469",
+              "leftValue": "={{ $json.matched_count }}",
+              "rightValue": 0,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      }
+    },
+    {
+      "id": "f20eebb2-8158-4b67-8fef-08a803917282",
+      "name": "Build rank request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1540,
+        -200
+      ],
+      "parameters": {
+        "jsCode": "// Step 3 of the search: Gemini scores and explains ONLY the candidates code already approved.\nconst f = $input.first().json;\n\nconst candidateList = f.matched.map(c =>\n  `[id ${c.id}] ${c.full_name} | ${c.headline} | ${c.location}\\n` +\n  `languages: ${(c.languages || []).join(', ')}\\n` +\n  `skills (years): ${c.skills}\\n` +\n  `CV text: ${(c.cv_text || c.summary || '').replace(/\\s+/g, ' ').slice(0, 1500)}`\n).join('\\n\\n');\n\nconst instructions = `You rank candidates for a recruiter. Every candidate below ALREADY meets these requirements\n(checked by code): ${f.rules_text || '(none)'}.\n\nYour job:\n1. Remove a candidate only if their CV clearly fails one of these other requirements: ${(f.rules.other_requirements || []).join('; ') || '(none)'}.\n   If the CV does not mention it, keep them and name it as the risk in line 2.\n2. Score each remaining candidate from 0 to 100: 60 for meeting the requirements,\n   up to 25 for experience beyond the minimum, up to 15 for these nice-to-haves: ${(f.rules.nice_to_haves || []).join('; ') || '(none)'}.\n3. Return at most 5, best first. Use only ids from the list. Never invent a candidate or a number.\n4. reason: exactly two short lines separated by \"\\\\n\". Line 1: why they fit, with the real numbers from the list.\n   Line 2: the main gap or risk, or a bonus. Under 25 words each.\n5. If every candidate fails the other requirements, return no matches and explain why in no_match_reason.`;\n\nconst schema = {\n  type: 'object',\n  properties: {\n    matches: {\n      type: 'array',\n      items: {\n        type: 'object',\n        properties: { candidate_id: { type: 'integer' }, score: { type: 'integer' }, reason: { type: 'string' } },\n        required: ['candidate_id', 'score', 'reason'], additionalProperties: false\n      }\n    },\n    no_match_reason: { type: 'string' }\n  },\n  required: ['matches', 'no_match_reason'],\n  additionalProperties: false\n};\n\nreturn [{\n  json: {\n    body: {\n      model: 'gemini-3.5-flash-lite',\n      system_instruction: instructions,\n      input: [{ type: 'text', text: `Recruiter question: ${f.question}\\n\\nCandidates (${f.matched.length}):\\n\\n${candidateList}` }],\n      response_format: { type: 'text', mime_type: 'application/json', schema: schema }\n    }\n  }\n}];\n"
+      }
+    },
+    {
+      "id": "b36823f8-b9f1-4b4e-9bb2-a598f6b1cd71",
+      "name": "Ask Gemini (rank)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1540,
+        -100
       ],
       "parameters": {
         "method": "POST",
@@ -99,25 +185,25 @@
       "onError": "continueRegularOutput"
     },
     {
-      "id": "8dd1d31c-eb6a-4829-9bd3-2fbaa62a5394",
+      "id": "53fa2de1-c49b-44b0-851f-a8ffde7ebbbd",
       "name": "Parse matches",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1100,
+        1980,
         0
       ],
       "parameters": {
-        "jsCode": "// Check Gemini's answer against the real database before showing it to anyone.\n// Only candidates that exist in the database survive, and names and CV files come\n// from the database, not from the AI, so every recommendation cites a real CV.\nconst reply = $input.first().json;\nconst req = $('Build search request').first().json;\nconst candidates = $('Get candidates').all().map(i => i.json).filter(c => c.id);\nconst roles = $('Get roles').all().map(i => i.json).filter(r => r.id);\nconst byId = new Map(candidates.map(c => [Number(c.id), c]));\n\nlet answer = null;\nlet problem = '';\ntry {\n  if (reply.error) throw new Error(typeof reply.error === 'string' ? reply.error : (reply.error.description || reply.error.message || 'API error'));\n  if (reply.status && reply.status !== 'completed') throw new Error('Gemini did not finish: ' + reply.status);\n  const steps = reply.steps || [];\n  const output = steps.filter(s => s.type === 'model_output').pop() || steps[steps.length - 1];\n  const textPart = ((output && output.content) || []).find(c => c.type === 'text');\n  answer = JSON.parse(textPart ? textPart.text : reply.output_text);\n} catch (e) {\n  problem = e.message;\n}\n\nconst seen = new Set();\nconst matches = ((answer && answer.matches) || [])\n  .filter(m => byId.has(Number(m.candidate_id)) && !seen.has(Number(m.candidate_id)) && seen.add(Number(m.candidate_id)))\n  .map(m => {\n    const c = byId.get(Number(m.candidate_id));\n    return {\n      candidate_id: Number(c.id),\n      name: c.full_name,\n      cv_file: c.cv_file_name,\n      score: Math.max(0, Math.min(100, Math.round(m.score))),\n      reason: String(m.reason || '').trim()\n    };\n  })\n  .sort((a, b) => b.score - a.score)\n  .slice(0, 5);\n\nconst role = roles.find(r => Number(r.id) === Number(answer && answer.role_id));\n\nlet text;\nif (!answer) {\n  text = `:warning: I couldn't answer \"${req.question}\" right now (${problem}). Please ask again in a minute.`;\n} else if (!matches.length) {\n  text = `:mag: *No good match* for \"${req.question}\".\\n${answer.no_match_reason || 'Nobody in the CV database meets all the requirements.'}\\nI won't suggest someone who doesn't fit.`;\n} else {\n  const lines = matches.map((m, i) =>\n    `*${i + 1}. ${m.name}*: ${m.score}/100\\n${m.reason.split('\\n').map(l => '> ' + l).join('\\n')}\\n> :page_facing_up: ${m.cv_file}`);\n  text = `:mag: *Top ${matches.length}* for \"${req.question}\"` +\n    (role ? ` (role #${role.id}: ${role.title})` : '') + `\\n\\n` + lines.join('\\n\\n');\n}\n\nreturn [{\n  json: {\n    question: req.question,\n    channel: req.channel,\n    role_id: role ? Number(role.id) : 0,\n    role_title: role ? role.title : '',\n    matches: matches,\n    candidate_ids: matches.map(m => m.candidate_id).join(','),\n    shortlist_rows: role ? matches.map(m => ({ role_id: Number(role.id), candidate_id: m.candidate_id, score: m.score, reason: m.reason, source_cv: m.cv_file })) : [],\n    text: text\n  }\n}];\n"
+        "jsCode": "// Final step: build the Slack answer. Only candidates that passed the code check can appear,\n// and names and CV files come from the database, never from the AI.\nconst f = $('Apply filters').first().json;\nconst roles = $('Get roles').all().map(i => i.json).filter(r => r.id);\nconst role = roles.find(r => f.rules && Number(r.id) === Number(f.rules.role_id));\nconst allowed = new Map(f.matched.map(c => [Number(c.id), c]));\n\nlet matches = [];\nlet aiNote = '';\nlet noMatchReason = '';\n\nif (f.matched.length) {\n  let answer = null;\n  try {\n    const r = $input.first().json;\n    if (r.error) throw new Error(typeof r.error === 'string' ? r.error : (r.error.description || r.error.message || 'API error'));\n    const steps = r.steps || [];\n    const output = steps.filter(s => s.type === 'model_output').pop() || steps[steps.length - 1];\n    const textPart = ((output && output.content) || []).find(c => c.type === 'text');\n    answer = JSON.parse(textPart ? textPart.text : r.output_text);\n  } catch (e) {\n    aiNote = e.message;\n  }\n\n  if (answer) {\n    const seen = new Set();\n    matches = (answer.matches || [])\n      .filter(m => allowed.has(Number(m.candidate_id)) && !seen.has(Number(m.candidate_id)) && seen.add(Number(m.candidate_id)))\n      .map(m => ({ c: allowed.get(Number(m.candidate_id)), score: Math.max(0, Math.min(100, Math.round(m.score))), reason: String(m.reason || '').trim() }));\n    noMatchReason = answer.no_match_reason || '';\n  } else {\n    // AI unavailable: still answer, ranked by experience beyond the minimum.\n    matches = f.matched.slice(0, 5).map(c => ({\n      c, score: Math.min(85, 60 + Math.round(c.extra * 5)),\n      reason: `Meets: ${f.rules_text}.\\nSkills: ${c.skills.split(', ').slice(0, 4).join(', ')}`\n    }));\n  }\n}\n\nmatches = matches.sort((a, b) => b.score - a.score).slice(0, 5).map(m => ({\n  candidate_id: Number(m.c.id), name: m.c.full_name, cv_file: m.c.cv_file_name, score: m.score, reason: m.reason\n}));\n\nlet text;\nif (f.problem) {\n  text = `:warning: I couldn't understand \"${f.question}\" right now (${f.problem}). Please ask again in a minute.`;\n} else if (!matches.length) {\n  const close = f.near_misses.map(n => `• ${n.name}: missing ${n.missing} (:page_facing_up: ${n.cv_file})`).join('\\n');\n  text = `:mag: *No good match* for \"${f.question}\".\\n` +\n    `Nobody meets all of: ${f.rules_text || 'the requirements'}.` +\n    (noMatchReason ? `\\n${noMatchReason}` : '') +\n    (close ? `\\n\\n*Closest:*\\n${close}` : '') +\n    `\\n\\nI won't suggest someone who doesn't fit.`;\n} else {\n  const lines = matches.map((m, i) =>\n    `*${i + 1}. ${m.name}*: ${m.score}/100\\n${m.reason.split('\\n').map(l => '> ' + l).join('\\n')}\\n> :page_facing_up: ${m.cv_file}`);\n  text = `:mag: *Top ${matches.length}* for \"${f.question}\"` + (role ? ` (role #${role.id}: ${role.title})` : '') +\n    `\\n_Checked all candidates for: ${f.rules_text}_` + (aiNote ? `\\n_(AI ranking unavailable, ranked by experience)_` : '') +\n    `\\n\\n` + lines.join('\\n\\n');\n}\n\nreturn [{\n  json: {\n    question: f.question,\n    channel: f.channel,\n    role_id: role ? Number(role.id) : 0,\n    role_title: role ? role.title : '',\n    matches: matches,\n    candidate_ids: matches.map(m => m.candidate_id).join(','),\n    shortlist_rows: role ? matches.map(m => ({ role_id: Number(role.id), candidate_id: m.candidate_id, score: m.score, reason: m.reason, source_cv: m.cv_file })) : [],\n    text: text\n  }\n}];\n"
       }
     },
     {
-      "id": "93584e5e-a255-40ba-abe9-5d1c46b91efe",
+      "id": "5782ed72-658e-4099-aa99-d03cee9515d3",
       "name": "Reply in Slack",
       "type": "n8n-nodes-base.slack",
       "typeVersion": 2.3,
       "position": [
-        1320,
+        2200,
         0
       ],
       "parameters": {
@@ -132,12 +218,12 @@
       }
     },
     {
-      "id": "cdfb2251-a979-4c41-9f56-f3592c8e90d1",
+      "id": "f351966b-2c82-43fb-ba1e-d706dbf56f01",
       "name": "For a role?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1540,
+        2420,
         0
       ],
       "parameters": {
@@ -150,7 +236,7 @@
           },
           "conditions": [
             {
-              "id": "7b1aee6b-f735-4e7e-a294-6b5347d626a2",
+              "id": "8b31ea5e-b6bc-47d7-8e2a-06f8e8c7cd0e",
               "leftValue": "={{ $('Parse matches').first().json.role_id }}",
               "rightValue": 0,
               "operator": {
@@ -159,7 +245,7 @@
               }
             },
             {
-              "id": "87b693e5-98fd-4336-bc1c-69af792a28e4",
+              "id": "c3c8711a-227e-4b84-945b-48687399d2b8",
               "leftValue": "={{ $('Parse matches').first().json.matches.length }}",
               "rightValue": 0,
               "operator": {
@@ -175,12 +261,12 @@
       }
     },
     {
-      "id": "2ee71a25-a32d-4c69-9980-48109edcd13a",
+      "id": "2afedc59-c986-4295-9250-914e8f250674",
       "name": "Save shortlist",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1760,
+        2640,
         -100
       ],
       "parameters": {
@@ -207,12 +293,12 @@
       "executeOnce": true
     },
     {
-      "id": "a5c75ee9-39de-4485-bfda-968e869c468f",
+      "id": "f374a398-e039-4dca-b636-bf2e6d2b861b",
       "name": "Ask to approve outreach",
       "type": "n8n-nodes-base.slack",
       "typeVersion": 2.3,
       "position": [
-        1980,
+        2860,
         -100
       ],
       "parameters": {
@@ -235,12 +321,12 @@
       }
     },
     {
-      "id": "f1e87b6c-1ab8-4a72-8da5-3b64cfd41ae8",
+      "id": "7f98a2dd-34ae-4c4e-8923-d44fd2802eff",
       "name": "Approved?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        2200,
+        3080,
         -100
       ],
       "parameters": {
@@ -253,7 +339,7 @@
           },
           "conditions": [
             {
-              "id": "7403412d-ef48-4d9e-a70b-76c8d6e37671",
+              "id": "9ca1cdc7-0cb0-4e09-b5d6-43c37eb9891b",
               "leftValue": "={{ $json.data.approved }}",
               "rightValue": true,
               "operator": {
@@ -270,12 +356,12 @@
       }
     },
     {
-      "id": "270ca866-1473-4ab9-891e-108cc7511ede",
+      "id": "259e5479-0ee7-4411-a1f3-f0a818b581fb",
       "name": "Mark shortlist approved",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        2420,
+        3300,
         -200
       ],
       "parameters": {
@@ -292,12 +378,12 @@
       }
     },
     {
-      "id": "787c8afa-5a6d-499d-b309-44f038cb8792",
+      "id": "111f22da-b2d1-4fdc-8e61-da71a3d73d91",
       "name": "Confirm approved",
       "type": "n8n-nodes-base.slack",
       "typeVersion": 2.3,
       "position": [
-        2640,
+        3520,
         -200
       ],
       "parameters": {
@@ -312,12 +398,12 @@
       }
     },
     {
-      "id": "ed3f071e-eda5-4269-adea-9765bf3a68c6",
+      "id": "8add664c-e665-4bb8-808e-edad71fa3862",
       "name": "Confirm not approved",
       "type": "n8n-nodes-base.slack",
       "typeVersion": 2.3,
       "position": [
-        2420,
+        3300,
         0
       ],
       "parameters": {
@@ -359,25 +445,76 @@
       "main": [
         [
           {
-            "node": "Build search request",
+            "node": "Build filter request",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Build search request": {
+    "Build filter request": {
       "main": [
         [
           {
-            "node": "Ask Gemini",
+            "node": "Ask Gemini (rules)",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Ask Gemini": {
+    "Ask Gemini (rules)": {
+      "main": [
+        [
+          {
+            "node": "Apply filters",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Apply filters": {
+      "main": [
+        [
+          {
+            "node": "Anyone qualifies?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anyone qualifies?": {
+      "main": [
+        [
+          {
+            "node": "Build rank request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Parse matches",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build rank request": {
+      "main": [
+        [
+          {
+            "node": "Ask Gemini (rank)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ask Gemini (rank)": {
       "main": [
         [
           {

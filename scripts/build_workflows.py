@@ -110,39 +110,50 @@ save("2 - Job description approval", [
     ("Mark approved", "Confirm approved", 0), ("Mark rejected", "Confirm rejected", 0)])
 
 # ---------- Workflow 3: Slack search bot ----------
+# Gemini turns the question into rules -> code checks EVERY candidate -> Gemini only scores the ones that passed.
 P = "$('Parse matches').first().json"
 CH3 = {"__rl": True, "value": "={{ " + P + ".channel }}", "mode": "id"}
-gem3 = gemini_node("Ask Gemini", [880, 0], 90000)
-gem3["onError"] = "continueRegularOutput"
+gem_rules = gemini_node("Ask Gemini (rules)", [880, 0], 60000)
+gem_rank = gemini_node("Ask Gemini (rank)", [1540, -100], 90000)
+for g in (gem_rules, gem_rank):
+    g["onError"] = "continueRegularOutput"
 save("3 - Slack search bot", [
     node("Slack question", "n8n-nodes-base.slackTrigger", 1, [0, 0], {"trigger": ["app_mention"], "watchWorkspace": True, "options": {}}),
     supabase("Get roles", [220, 0], "GET", SB + "/rest/v1/roles?select=id,title,client_name,must_haves,nice_to_haves&jd_status=eq.approved",
              alwaysOutputData=True),
     supabase("Get candidates", [440, 0], "GET", SB + "/rest/v1/candidate_profiles?select=*&order=id",
              alwaysOutputData=True, executeOnce=True),
-    node("Build search request", "n8n-nodes-base.code", 2, [660, 0], {"jsCode": code("build_search_request.js")}),
-    gem3,
-    node("Parse matches", "n8n-nodes-base.code", 2, [1100, 0], {"jsCode": code("parse_matches.js")}),
-    slack_msg("Reply in Slack", [1320, 0], CH3, "={{ " + P + ".text }}"),
-    if_node("For a role?", [1540, 0], [
+    node("Build filter request", "n8n-nodes-base.code", 2, [660, 0], {"jsCode": code("build_filter_request.js")}),
+    gem_rules,
+    node("Apply filters", "n8n-nodes-base.code", 2, [1100, 0], {"jsCode": code("apply_filters.js")}),
+    if_node("Anyone qualifies?", [1320, 0], [
+        {"leftValue": "={{ $json.matched_count }}", "rightValue": 0, "operator": {"type": "number", "operation": "gt"}}]),
+    node("Build rank request", "n8n-nodes-base.code", 2, [1540, -200], {"jsCode": code("build_rank_request.js")}),
+    gem_rank,
+    node("Parse matches", "n8n-nodes-base.code", 2, [1980, 0], {"jsCode": code("parse_matches.js")}),
+    slack_msg("Reply in Slack", [2200, 0], CH3, "={{ " + P + ".text }}"),
+    if_node("For a role?", [2420, 0], [
         {"leftValue": "={{ " + P + ".role_id }}", "rightValue": 0, "operator": {"type": "number", "operation": "gt"}},
         {"leftValue": "={{ " + P + ".matches.length }}", "rightValue": 0, "operator": {"type": "number", "operation": "gt"}}]),
-    supabase("Save shortlist", [1760, -100], "POST", SB + "/rest/v1/shortlists?on_conflict=role_id,candidate_id",
+    supabase("Save shortlist", [2640, -100], "POST", SB + "/rest/v1/shortlists?on_conflict=role_id,candidate_id",
              body="={{ JSON.stringify(" + P + ".shortlist_rows) }}",
              headers={"Prefer": "resolution=merge-duplicates"}, executeOnce=True),
-    slack_approval("Ask to approve outreach", [1980, -100], CH3,
+    slack_approval("Ask to approve outreach", [2860, -100], CH3,
                    "=:envelope: *Approve outreach?*\nRole #{{ " + P + ".role_id }}: {{ " + P + ".role_title }}\nCandidates: {{ " + P + ".matches.map(m => m.name).join(', ') }}\n\nIf you approve, they go into the GHL candidate pipeline and receive the email sequence. Nothing is sent before you approve.",
                    "Approve outreach", "Don't contact"),
-    if_node("Approved?", [2200, -100], [IS_APPROVED]),
-    supabase("Mark shortlist approved", [2420, -200], "PATCH",
+    if_node("Approved?", [3080, -100], [IS_APPROVED]),
+    supabase("Mark shortlist approved", [3300, -200], "PATCH",
              "=" + SB + "/rest/v1/shortlists?role_id=eq.{{ " + P + ".role_id }}&candidate_id=in.({{ " + P + ".candidate_ids }})",
              body="={{ JSON.stringify({ stage: 'approved', updated_at: new Date().toISOString() }) }}"),
-    slack_msg("Confirm approved", [2640, -200], CH3,
+    slack_msg("Confirm approved", [3520, -200], CH3,
               "=:white_check_mark: Outreach approved for {{ " + P + ".matches.length }} candidates (role #{{ " + P + ".role_id }}). They are now in the Approved stage."),
-    slack_msg("Confirm not approved", [2420, 0], CH3,
+    slack_msg("Confirm not approved", [3300, 0], CH3,
               "=:no_entry_sign: Outreach not approved for role #{{ " + P + ".role_id }}. Nobody was contacted. The candidates stay in the Shortlisted stage."),
-], [("Slack question", "Get roles", 0), ("Get roles", "Get candidates", 0), ("Get candidates", "Build search request", 0),
-    ("Build search request", "Ask Gemini", 0), ("Ask Gemini", "Parse matches", 0), ("Parse matches", "Reply in Slack", 0),
-    ("Reply in Slack", "For a role?", 0), ("For a role?", "Save shortlist", 0), ("Save shortlist", "Ask to approve outreach", 0),
-    ("Ask to approve outreach", "Approved?", 0), ("Approved?", "Mark shortlist approved", 0), ("Approved?", "Confirm not approved", 1),
+], [("Slack question", "Get roles", 0), ("Get roles", "Get candidates", 0), ("Get candidates", "Build filter request", 0),
+    ("Build filter request", "Ask Gemini (rules)", 0), ("Ask Gemini (rules)", "Apply filters", 0), ("Apply filters", "Anyone qualifies?", 0),
+    ("Anyone qualifies?", "Build rank request", 0), ("Anyone qualifies?", "Parse matches", 1),
+    ("Build rank request", "Ask Gemini (rank)", 0), ("Ask Gemini (rank)", "Parse matches", 0),
+    ("Parse matches", "Reply in Slack", 0), ("Reply in Slack", "For a role?", 0), ("For a role?", "Save shortlist", 0),
+    ("Save shortlist", "Ask to approve outreach", 0), ("Ask to approve outreach", "Approved?", 0),
+    ("Approved?", "Mark shortlist approved", 0), ("Approved?", "Confirm not approved", 1),
     ("Mark shortlist approved", "Confirm approved", 0)])
