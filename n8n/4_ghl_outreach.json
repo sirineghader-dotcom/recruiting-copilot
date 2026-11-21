@@ -1,0 +1,543 @@
+{
+  "name": "4 - GHL outreach",
+  "nodes": [
+    {
+      "id": "1fbe8214-fe26-4564-9aa6-254e58f7fde8",
+      "name": "Every minute",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 1
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "652b5378-dd0a-4381-b265-bf3311dab99d",
+      "name": "Settings",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "jsCode": "// Settings for the outreach workflow. Change these to match your setup.\nreturn [{\n  json: {\n    location_id: 'yLiKZKvk2CeI2ckIqd1L',   // the GHL sub-account (location)\n    pipeline_name: 'SG - Candidates',        // the candidate pipeline in GHL\n    outreach_tag: 'sg-outreach',             // adding this tag starts the GHL email sequence\n    // TEST MODE: every candidate's GHL contact gets YOUR inbox with a +tag\n    // (e.g. you+cand12@gmail.com), so no real person is ever emailed while testing.\n    // Set to '' to email candidates at their real address.\n    test_inbox: 'YOUR_EMAIL@gmail.com'\n  }\n}];\n"
+      }
+    },
+    {
+      "id": "d708e1e2-c3a4-4021-b655-0a694f931313",
+      "name": "Get GHL pipelines",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://services.leadconnectorhq.com/opportunities/pipelines?locationId={{ $json.location_id }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      }
+    },
+    {
+      "id": "b13f5d66-1a0e-4865-92b2-750be8902e90",
+      "name": "Find pipeline",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        0
+      ],
+      "parameters": {
+        "jsCode": "// Find the candidate pipeline and its stage IDs in GHL (names are matched loosely).\nconst s = $('Settings').first().json;\nconst norm = t => String(t || '').toLowerCase().replace(/[^a-z0-9]/g, '');\n\nconst pipeline = ($input.first().json.pipelines || []).find(p => norm(p.name) === norm(s.pipeline_name));\nif (!pipeline) throw new Error(`GHL pipeline \"${s.pipeline_name}\" not found. Create it in GHL (Opportunities > Pipelines) first.`);\n\nconst stages = Object.fromEntries(pipeline.stages.map(st => [norm(st.name), st.id]));\nif (!stages.outreachsent) throw new Error(`The pipeline \"${pipeline.name}\" needs a stage called \"Outreach Sent\".`);\n\nreturn [{\n  json: {\n    pipeline_id: pipeline.id,\n    pipeline_name: pipeline.name,\n    stages: stages,                                                       // \"outreachsent\" -> stage id\n    stage_names: Object.fromEntries(pipeline.stages.map(st => [st.id, st.name]))  // stage id -> \"Outreach Sent\"\n  }\n}];\n"
+      }
+    },
+    {
+      "id": "2a1ffc72-21e0-49c3-b9e4-27d99f55906c",
+      "name": "Get approved shortlist",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        -100
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "https://irqnsrfhwinvujxkmsmo.supabase.co/rest/v1/shortlists?select=id,role_id,candidate_id,candidates(full_name,email),roles(title)&stage=eq.approved",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "id": "ae8a31b1-cf35-498b-ac71-c15eb535aa33",
+      "name": "Prepare GHL records",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1100,
+        -100
+      ],
+      "parameters": {
+        "jsCode": "// Turn each newly approved shortlist row into a GHL contact + opportunity.\nconst s = $('Settings').first().json;\nconst info = $('Find pipeline').first().json;\nconst rows = $input.all().map(i => i.json).filter(r => r.id);   // empty result -> nothing to do\n\nconst testEmail = candidateId => {\n  const [user, domain] = s.test_inbox.split('@');\n  return `${user}+cand${candidateId}@${domain}`;\n};\n\nreturn rows.map(r => {\n  const c = r.candidates || {};\n  const fullName = c.full_name || 'Candidate';\n  const [first, ...rest] = fullName.split(' ');\n  return {\n    json: {\n      shortlist_id: r.id,\n      role_id: r.role_id,\n      role_title: (r.roles || {}).title || '',\n      candidate_id: r.candidate_id,\n      name: fullName,\n      contact: {\n        locationId: s.location_id,\n        firstName: first,\n        lastName: rest.join(' '),\n        name: fullName,\n        email: s.test_inbox ? testEmail(r.candidate_id) : c.email,\n        tags: ['sg-candidate', 'sg-role-' + r.role_id],\n        source: 'SG Recruiting Copilot'\n      },\n      opportunity: {\n        pipelineId: info.pipeline_id,\n        locationId: s.location_id,\n        pipelineStageId: info.stages.outreachsent,\n        status: 'open',\n        // The role and candidate ids in the name let us sync stages back to Supabase later.\n        name: `SG - ${fullName} (role ${r.role_id}, candidate ${r.candidate_id})`\n      }\n    }\n  };\n});\n"
+      }
+    },
+    {
+      "id": "e88baaa8-aa0c-4b38-8c57-afe923c75c31",
+      "name": "Upsert GHL contact",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1320,
+        -100
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://services.leadconnectorhq.com/contacts/upsert",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.contact) }}"
+      }
+    },
+    {
+      "id": "4944d706-acda-4ed0-b38c-fcaf9425ea02",
+      "name": "Create opportunity",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1540,
+        -100
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://services.leadconnectorhq.com/opportunities/",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ ...$('Prepare GHL records').item.json.opportunity, contactId: $json.contact.id }) }}"
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "ffcb1be0-0b77-4454-bc56-f137e57b198c",
+      "name": "Add outreach tag",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1760,
+        -100
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://services.leadconnectorhq.com/contacts/{{ $('Upsert GHL contact').item.json.contact.id }}/tags",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ tags: [$('Settings').first().json.outreach_tag] }) }}"
+      }
+    },
+    {
+      "id": "7029e811-9693-4f97-ae12-625cea9d9f7d",
+      "name": "Mark contacted",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1980,
+        -100
+      ],
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://irqnsrfhwinvujxkmsmo.supabase.co/rest/v1/shortlists?id=eq.{{ $('Prepare GHL records').item.json.shortlist_id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "options": {
+          "timeout": 30000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ stage: 'contacted', updated_at: new Date().toISOString() }) }}"
+      }
+    },
+    {
+      "id": "9752105d-bb14-4423-8874-04403682030a",
+      "name": "Save GHL contact id",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2200,
+        -100
+      ],
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://irqnsrfhwinvujxkmsmo.supabase.co/rest/v1/candidates?id=eq.{{ $('Prepare GHL records').item.json.candidate_id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "options": {
+          "timeout": 30000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ ghl_contact_id: $('Upsert GHL contact').item.json.contact.id }) }}"
+      }
+    },
+    {
+      "id": "25545feb-c766-44e9-a92a-c114614388f8",
+      "name": "Summarize",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2420,
+        -100
+      ],
+      "parameters": {
+        "jsCode": "// One Slack message for the whole batch instead of one per candidate.\nconst done = $('Prepare GHL records').all().map(i => i.json);\nconst byRole = {};\nfor (const d of done) (byRole[d.role_id] = byRole[d.role_id] || { title: d.role_title, names: [] }).names.push(d.name);\n\nconst lines = Object.entries(byRole).map(([id, r]) => `• Role #${id} (${r.title}): ${r.names.join(', ')}`);\nreturn [{\n  json: {\n    text: `:incoming_envelope: *Outreach started* for ${done.length} candidate${done.length === 1 ? '' : 's'}\\n` +\n      lines.join('\\n') +\n      `\\nThey are in the GHL pipeline (Outreach Sent) and the email sequence has begun. It stops automatically when they reply.`\n  }\n}];\n"
+      }
+    },
+    {
+      "id": "b9e0cfca-5a1c-4d06-846d-b62a2d4a85ad",
+      "name": "Tell recruiter",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        2640,
+        -100
+      ],
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "#recruiting",
+          "mode": "name"
+        },
+        "text": "={{ $json.text }}",
+        "otherOptions": {}
+      }
+    },
+    {
+      "id": "36633ad2-6b46-4916-860b-a4d624c11c38",
+      "name": "Get SG opportunities",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        880,
+        150
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "=https://services.leadconnectorhq.com/opportunities/search?location_id={{ $('Settings').first().json.location_id }}&pipeline_id={{ $json.pipeline_id }}&limit=100",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 30000
+        }
+      }
+    },
+    {
+      "id": "dce0ff1c-0c0e-4817-914e-af6eb956a190",
+      "name": "Get current stages",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1100,
+        150
+      ],
+      "parameters": {
+        "method": "GET",
+        "url": "https://irqnsrfhwinvujxkmsmo.supabase.co/rest/v1/shortlists?select=role_id,candidate_id,stage",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "alwaysOutputData": true,
+      "executeOnce": true
+    },
+    {
+      "id": "8c47d30a-21c4-4fb0-8449-739272538cae",
+      "name": "Find stage changes",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1320,
+        150
+      ],
+      "parameters": {
+        "jsCode": "// Copy pipeline stages from GHL back to Supabase, so the portal shows where each candidate is.\nconst info = $('Find pipeline').first().json;\nconst norm = t => String(t || '').toLowerCase().replace(/[^a-z0-9]/g, '');\nconst GHL_TO_DB = {\n  approved: 'approved', outreachsent: 'contacted', replied: 'replied', interview: 'interview',\n  submittedtoclient: 'interview', placed: 'placed', notafit: 'rejected'\n};\n\nconst current = new Map($('Get current stages').all().map(i => i.json).filter(r => r.role_id)\n  .map(r => [`${r.role_id}-${r.candidate_id}`, r.stage]));\n\nconst changes = [];\nfor (const o of ($('Get SG opportunities').first().json.opportunities || [])) {\n  const m = String(o.name || '').match(/role (\\d+), candidate (\\d+)/);\n  if (!m) continue;                                         // not created by this workflow\n  const stage = GHL_TO_DB[norm(info.stage_names[o.pipelineStageId])];\n  const key = `${m[1]}-${m[2]}`;\n  if (stage && current.has(key) && current.get(key) !== stage) {\n    changes.push({ json: { role_id: Number(m[1]), candidate_id: Number(m[2]), stage: stage } });\n  }\n}\nreturn changes;\n"
+      }
+    },
+    {
+      "id": "26fa741b-b013-4f81-becf-4a3d1034cbbd",
+      "name": "Update stage",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1540,
+        150
+      ],
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://irqnsrfhwinvujxkmsmo.supabase.co/rest/v1/shortlists?role_id=eq.{{ $json.role_id }}&candidate_id=eq.{{ $json.candidate_id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "options": {
+          "timeout": 30000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ stage: $json.stage, updated_at: new Date().toISOString() }) }}"
+      }
+    }
+  ],
+  "connections": {
+    "Every minute": {
+      "main": [
+        [
+          {
+            "node": "Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Settings": {
+      "main": [
+        [
+          {
+            "node": "Get GHL pipelines",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get GHL pipelines": {
+      "main": [
+        [
+          {
+            "node": "Find pipeline",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find pipeline": {
+      "main": [
+        [
+          {
+            "node": "Get approved shortlist",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Get SG opportunities",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get approved shortlist": {
+      "main": [
+        [
+          {
+            "node": "Prepare GHL records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare GHL records": {
+      "main": [
+        [
+          {
+            "node": "Upsert GHL contact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upsert GHL contact": {
+      "main": [
+        [
+          {
+            "node": "Create opportunity",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create opportunity": {
+      "main": [
+        [
+          {
+            "node": "Add outreach tag",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add outreach tag": {
+      "main": [
+        [
+          {
+            "node": "Mark contacted",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark contacted": {
+      "main": [
+        [
+          {
+            "node": "Save GHL contact id",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save GHL contact id": {
+      "main": [
+        [
+          {
+            "node": "Summarize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarize": {
+      "main": [
+        [
+          {
+            "node": "Tell recruiter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get SG opportunities": {
+      "main": [
+        [
+          {
+            "node": "Get current stages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get current stages": {
+      "main": [
+        [
+          {
+            "node": "Find stage changes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find stage changes": {
+      "main": [
+        [
+          {
+            "node": "Update stage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}
