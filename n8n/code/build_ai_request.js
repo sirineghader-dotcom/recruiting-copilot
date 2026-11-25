@@ -9,15 +9,16 @@ Rules:
 - Only use what the CV says. Never invent. Use "" for unknown text and [] for unknown lists.
 - readable: false if the document is blank, not a CV, or too damaged to read. Explain why in unreadable_reason.
 - email: lowercase. languages: lowercase English names, e.g. "arabic".
-- skills: one entry per skill with years of hands-on experience, summed over the jobs where it was used.
-  A job ending in "Present" counts until today.
-  Overlapping jobs count once. Round to 1 decimal. A skill only listed (no dated job) gets years 0.
-  A tool's years come ONLY from the jobs whose description names that tool. Never copy years from one skill to another.
-- The kind of work is a skill too, not only the tools. Every job in a medical office, clinic, telehealth or
-  healthcare practice doing admin work (scheduling, patient records, intake, billing, insurance, medical VA)
-  counts toward medical_admin. Every customer-facing phone or chat job counts toward phone_support or chat_support.
-- Certificates and trainings are skills: any HIPAA training/certificate/compliance means a hipaa entry
-  (years = the medical jobs where it applied, or 0 if only the certificate is listed).
+- jobs: every dated job, oldest or newest first. start and end as YYYY-MM (only a year given: YYYY-01 for start,
+  YYYY-12 for end; current job: end "present"). skills = the skill names used IN THAT JOB, judged only from
+  that job's own title and description: the tools it names, the kind of work it is, and hipaa where it applied.
+  Never give a job a tool its own text does not mention, even if the tool appears elsewhere in the CV.
+- The kind of work is a skill too. A job in a medical office, clinic, telehealth or healthcare practice doing admin
+  work (scheduling, patient records, intake, billing, insurance, medical VA) is medical_admin. A customer-facing
+  phone or chat job is phone_support or chat_support.
+- Certificates and trainings are skills: any HIPAA training/certificate/compliance means a hipaa entry.
+- skills: every skill in the CV (from jobs, skills lists and certificates), with your best estimate of years.
+  (The years are recomputed exactly from the jobs afterwards; a skill in no dated job gets 0.)
 - Use these skill names when they apply: gohighlevel, zapier, n8n, make, api_webhooks, hubspot,
   clickfunnels, activecampaign, meta_ads, google_ads, ga4, klaviyo, tiktok_ads, seo,
   phone_support, chat_support, zendesk, freshdesk, intercom, healthcare, medical_admin, hipaa,
@@ -40,6 +41,18 @@ const schema = {
     summary: { type: 'string' },
     cv_updated: { type: 'string' },
     languages: { type: 'array', items: { type: 'string' } },
+    jobs: {
+      type: 'array',
+      items: {
+        type: 'object',
+        properties: {
+          title: { type: 'string' }, start: { type: 'string' }, end: { type: 'string' },
+          skills: { type: 'array', items: { type: 'string' } }
+        },
+        required: ['title', 'start', 'end', 'skills'],
+        additionalProperties: false
+      }
+    },
     skills: {
       type: 'array',
       items: {
@@ -52,7 +65,7 @@ const schema = {
     cv_text: { type: 'string' }
   },
   required: ['readable', 'unreadable_reason', 'full_name', 'email', 'phone', 'location',
-             'headline', 'summary', 'cv_updated', 'languages', 'skills', 'cv_text'],
+             'headline', 'summary', 'cv_updated', 'languages', 'jobs', 'skills', 'cv_text'],
   additionalProperties: false
 };
 

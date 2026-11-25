@@ -29,7 +29,44 @@ for (let i = 0; i < items.length; i++) {
     facts.unreadable_reason = 'No email address found, so the candidate cannot be identified';
   }
 
+  if (facts.readable) facts.skills = yearsFromJobs(facts);
+  delete facts.jobs;
   out.push({ json: { fileName: fileName, ...facts } });
 }
 
 return out;
+
+
+// Years are counted by code, not by the AI: for each skill, add up the months of the jobs that used it
+// (overlapping jobs count once). A skill that is in no dated job keeps the AI's estimate.
+function yearsFromJobs(facts) {
+  const month = v => { const m = /^(\d{4})-(\d{2})/.exec(String(v || '')); return m ? +m[1] * 12 + (+m[2] - 1) : null; };
+  const now = new Date();
+  const thisMonth = now.getUTCFullYear() * 12 + now.getUTCMonth();
+  const spans = {};
+  for (const job of facts.jobs || []) {
+    const start = month(job.start);
+    const end = /present|current|now/i.test(job.end || '') ? thisMonth : month(job.end);
+    if (start === null || end === null || end < start) continue;
+    for (const raw of job.skills || []) {
+      const skill = String(raw).toLowerCase().trim();
+      if (skill) (spans[skill] = spans[skill] || []).push([start, end + 1]);   // end month counts
+    }
+  }
+  const years = {};
+  for (const [skill, list] of Object.entries(spans)) {
+    list.sort((a, b) => a[0] - b[0]);
+    let total = 0, s = list[0][0], e = list[0][1];
+    for (const [a, b] of list.slice(1)) {
+      if (a <= e) e = Math.max(e, b); else { total += e - s; s = a; e = b; }
+    }
+    total += e - s;
+    years[skill] = Math.round(total / 12 * 10) / 10;
+  }
+  const result = new Map(Object.entries(years));
+  for (const x of facts.skills || []) {
+    const skill = String(x.skill || '').toLowerCase().trim();
+    if (skill && !result.has(skill)) result.set(skill, Number(x.years) || 0);
+  }
+  return [...result].map(([skill, y]) => ({ skill, years: y }));
+}
