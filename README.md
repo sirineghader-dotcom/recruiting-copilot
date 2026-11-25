@@ -82,6 +82,9 @@ four different date formats, a Word CV built entirely from a table, near-miss ca
   only n8n's secret key can read or write.
 - **AI: Gemini free tier.** The workflows call the Gemini Interactions API with a JSON schema, so the AI must answer
   in an exact structure. Free-tier requests may be used by Google to improve its products; all data here is fake.
+- **Years of experience are counted by code, not by the AI.** Gemini lists which skills each job used
+  (only what that job's own text says); code adds up the months, counting overlapping jobs once.
+  The first version let the AI do the arithmetic, and the test page caught two mistakes on medical CVs.
 - **Scoring:** 60 points for meeting every requirement, up to 25 for experience beyond the minimum,
   up to 15 for nice-to-haves.
 - **Pipeline stages:** shortlisted → approved → contacted → replied → interview → placed / rejected.
