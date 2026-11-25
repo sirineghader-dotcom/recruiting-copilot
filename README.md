@@ -12,6 +12,7 @@ and runs outreach. A recruiter approves every step.
 | 2. Job description approval | Transcript form | Gemini writes a job description from a call transcript → Slack Approve/Reject → saved as an open role |
 | 3. Slack search bot | `@Recruiting copilot` mention | Plain-English question → top 5 candidates with score, 2-line reason and source CV, or "no good match" → approve outreach |
 | 4. Outreach | Approved shortlist (checked every minute) | Sends each approved candidate to a GHL inbound-webhook workflow, which creates the contact + opportunity and starts an email sequence that stops when they reply. Reads GHL stages back into Supabase |
+| 5. Portal data | Portal page load | Returns roles, shortlists, pipeline stages and test results to the portal (n8n holds the database key, the browser holds none) |
 
 **The rules, and where they are enforced**
 - *Nothing reaches a candidate or client until a recruiter clicks Approve*: Slack "send and wait" approval nodes in workflows 2 and 3.
@@ -19,6 +20,12 @@ and runs outreach. A recruiter approves every step.
 - *Never invents a candidate*: `parse_matches.js` drops any candidate id that is not in the database.
 - *Every recommendation names its CV*: the CV file name comes from the database, never from the AI.
 - *Unreadable CVs are flagged, never skipped*: every file gets a row in `cv_files`, including failures with the reason.
+
+## Recruiter portal
+
+`docs/index.html`, hosted with GitHub Pages: open roles with their shortlists, candidates per pipeline stage,
+and a test page with 10 questions, the right answers, and the bot's score out of 10.
+The Slack bot logs every answer (`bot_answers`), and the test page grades the latest answer to each question.
 
 ## Project layout
 
@@ -35,6 +42,9 @@ supabase/
   schema.sql         tables
   process_cv.sql     dedupe / version / unreadable logic for each CV
   search.sql         candidate_profiles view used by the search bot
+  portal.sql         test questions, bot answer log, portal_data() for the portal
+docs/
+  index.html         the recruiter portal
 n8n/
   code/              the JavaScript inside every Code node
   *.json             workflows to import into n8n

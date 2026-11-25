@@ -1,0 +1,102 @@
+{
+  "name": "5 - Portal data",
+  "nodes": [
+    {
+      "id": "78663115-cf60-4ecd-9b7a-9fdcd973956c",
+      "name": "Portal asks for data",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "httpMethod": "GET",
+        "path": "sg-portal-data",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "webhookId": "0cd9298b-3020-4ccb-9238-334194d535e9"
+    },
+    {
+      "id": "9fc72230-6ca2-4c0e-8500-d16ff98442be",
+      "name": "Get portal data",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "https://irqnsrfhwinvujxkmsmo.supabase.co/rest/v1/rpc/portal_data",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "options": {
+          "timeout": 30000
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({}) }}"
+      }
+    },
+    {
+      "id": "c748c8d8-0644-4c48-8bd0-3f95a39d79d4",
+      "name": "Send to portal",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.1,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($json) }}",
+        "options": {
+          "responseHeaders": {
+            "entries": [
+              {
+                "name": "Access-Control-Allow-Origin",
+                "value": "*"
+              },
+              {
+                "name": "Cache-Control",
+                "value": "no-store"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Portal asks for data": {
+      "main": [
+        [
+          {
+            "node": "Get portal data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get portal data": {
+      "main": [
+        [
+          {
+            "node": "Send to portal",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "pinData": {}
+}

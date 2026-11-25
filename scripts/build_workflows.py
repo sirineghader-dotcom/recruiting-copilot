@@ -117,6 +117,10 @@ gem_rules = gemini_node("Ask Gemini (rules)", [880, 0], 60000)
 gem_rank = gemini_node("Ask Gemini (rank)", [1540, -100], 90000)
 for g in (gem_rules, gem_rank):
     g["onError"] = "continueRegularOutput"
+LOG = supabase("Log answer", [2420, 200], "POST", SB + "/rest/v1/bot_answers",
+               body="={{ JSON.stringify({ question: $('Build filter request').first().json.question, answer_text: " + P + ".text, "
+                    "candidate_names: " + P + ".matches.map(m => m.name), role_id: " + P + ".role_id || null }) }}")
+LOG["onError"] = "continueRegularOutput"   # logging must never break the bot
 save("3 - Slack search bot", [
     node("Slack question", "n8n-nodes-base.slackTrigger", 1, [0, 0], {"trigger": ["app_mention"], "watchWorkspace": True, "options": {}}),
     supabase("Get roles", [220, 0], "GET", SB + "/rest/v1/roles?select=id,title,client_name,must_haves,nice_to_haves&jd_status=eq.approved",
@@ -132,6 +136,7 @@ save("3 - Slack search bot", [
     gem_rank,
     node("Parse matches", "n8n-nodes-base.code", 2, [1980, 0], {"jsCode": code("parse_matches.js")}),
     slack_msg("Reply in Slack", [2200, 0], CH3, "={{ " + P + ".text }}"),
+    LOG,
     if_node("For a role?", [2420, 0], [
         {"leftValue": "={{ " + P + ".role_id }}", "rightValue": 0, "operator": {"type": "number", "operation": "gt"}},
         {"leftValue": "={{ " + P + ".matches.length }}", "rightValue": 0, "operator": {"type": "number", "operation": "gt"}}]),
@@ -153,7 +158,7 @@ save("3 - Slack search bot", [
     ("Build filter request", "Ask Gemini (rules)", 0), ("Ask Gemini (rules)", "Apply filters", 0), ("Apply filters", "Anyone qualifies?", 0),
     ("Anyone qualifies?", "Build rank request", 0), ("Anyone qualifies?", "Parse matches", 1),
     ("Build rank request", "Ask Gemini (rank)", 0), ("Ask Gemini (rank)", "Parse matches", 0),
-    ("Parse matches", "Reply in Slack", 0), ("Reply in Slack", "For a role?", 0), ("For a role?", "Save shortlist", 0),
+    ("Parse matches", "Reply in Slack", 0), ("Reply in Slack", "For a role?", 0), ("Reply in Slack", "Log answer", 0), ("For a role?", "Save shortlist", 0),
     ("Save shortlist", "Ask to approve outreach", 0), ("Ask to approve outreach", "Approved?", 0),
     ("Approved?", "Mark shortlist approved", 0), ("Approved?", "Confirm not approved", 1),
     ("Mark shortlist approved", "Confirm approved", 0)])
@@ -212,3 +217,22 @@ save("4 - GHL outreach", [
     ("Mark contacted", "Summarize", 0), ("Summarize", "Tell recruiter", 0),
     ("Find pipeline", "Get SG opportunities", 0), ("Get SG opportunities", "Get current stages", 0),
     ("Get current stages", "Find stage changes", 0), ("Find stage changes", "Update stage", 0)])
+
+
+# The one node to paste into the existing workflow 3 (so the Slack URL stays the same).
+(N8N / "3_add_log_answer_node.json").write_text(json.dumps({"nodes": [LOG], "connections": {}}, indent=2, ensure_ascii=False))
+print("3_add_log_answer_node.json: 1 node")
+
+# ---------- Workflow 5: portal data ----------
+# The portal (browser) calls this webhook; n8n reads Supabase with its secret key. No key in browser code.
+save("5 - Portal data", [
+    node("Portal asks for data", "n8n-nodes-base.webhook", 2, [0, 0],
+         {"httpMethod": "GET", "path": "sg-portal-data", "responseMode": "responseNode",
+          "options": {"allowedOrigins": "*"}}, webhookId=str(uuid.uuid4())),
+    supabase("Get portal data", [220, 0], "POST", SB + "/rest/v1/rpc/portal_data", body="={{ JSON.stringify({}) }}"),
+    node("Send to portal", "n8n-nodes-base.respondToWebhook", 1.1, [440, 0],
+         {"respondWith": "json", "responseBody": "={{ JSON.stringify($json) }}",
+          "options": {"responseHeaders": {"entries": [
+              {"name": "Access-Control-Allow-Origin", "value": "*"},
+              {"name": "Cache-Control", "value": "no-store"}]}}}),
+], [("Portal asks for data", "Get portal data", 0), ("Get portal data", "Send to portal", 0)])

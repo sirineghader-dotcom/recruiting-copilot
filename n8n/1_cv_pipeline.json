@@ -1,0 +1,363 @@
+{
+  "name": "CV pipeline",
+  "nodes": [
+    {
+      "parameters": {
+        "formTitle": "Upload CVs",
+        "formDescription": "Drop one or more CVs (PDF or Word)",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "CV files",
+              "fieldType": "file",
+              "acceptFileTypes": ".pdf, .docx",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.6,
+      "position": [
+        -544,
+        -80
+      ],
+      "id": "095324aa-8a63-49f3-b6fc-b680709af8fb",
+      "name": "On form submission",
+      "webhookId": "8601fd9c-6993-45cb-9702-fda5019334d4"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.ext }}",
+                    "rightValue": "pdf",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "71e36307-e007-49b6-b751-008d4846828d"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "=PDF"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "2941aea7-391e-494a-bd53-8699bd18658d",
+                    "leftValue": "={{ $json.ext }}",
+                    "rightValue": "docx",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Word"
+            }
+          ]
+        },
+        "looseTypeValidation": "=",
+        "options": {
+          "fallbackOutput": "extra",
+          "renameFallbackOutput": "Other"
+        }
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        -256,
+        -96
+      ],
+      "id": "d063be46-e2b0-4aae-b8ee-80f6e9b07fa1",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "jsCode": "// The form gives ONE item containing several files.\n// We turn it into ONE item PER file.\nconst out = [];\n\nfor (const item of $input.all()) {\n  for (const key of Object.keys(item.binary || {})) {\n    const file = item.binary[key];\n    const ext = file.fileName.split('.').pop().toLowerCase();\n\n    out.push({\n      json: { fileName: file.fileName, ext: ext },\n      binary: { file: file }\n    });\n  }\n}\n\nreturn out;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -400,
+        -80
+      ],
+      "id": "2400fb98-5443-48e3-95f2-098cc247c030",
+      "name": "Split files"
+    },
+    {
+      "parameters": {
+        "binaryPropertyName": "file"
+      },
+      "type": "n8n-nodes-base.compression",
+      "typeVersion": 1.1,
+      "position": [
+        96,
+        -80
+      ],
+      "id": "4f869fdf-3e83-4536-8353-bbbc99e9ec26",
+      "name": "Compression"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Compression only accepts files named .zip, and a .docx IS a zip inside.\n// So we keep the same file but relabel it as zip.\nreturn $input.all().map(item => {\n  const file = {\n    ...item.binary.file,\n    fileName: item.json.fileName + '.zip',\n    fileExtension: 'zip',\n    mimeType: 'application/zip'\n  };\n  return { json: item.json, binary: { file: file } };\n});"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -48,
+        -80
+      ],
+      "id": "91fe98c2-a2db-4ff4-9e09-5f61e195ea0a",
+      "name": "Mark as zip"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Find word/document.xml inside the unzipped files and turn it into plain text.\nconst out = [];\nconst items = $input.all();\n\nfor (let i = 0; i < items.length; i++) {\n  const bin = items[i].binary || {};\n  const key = Object.keys(bin).find(k => (bin[k].fileName || '').endsWith('document.xml'));\n\n  let text = '';\n  if (key) {\n    const xml = (await this.helpers.getBinaryDataBuffer(i, key)).toString('utf8');\n    text = xml\n      .replace(/<\\/w:p>/g, '\\n')      // end of paragraph -> new line\n      .replace(/<w:br\\/>/g, '\\n')     // line break inside a cell -> new line\n      .replace(/<w:tab\\/>/g, ' ')     // tab -> space\n      .replace(/<[^>]+>/g, '')        // remove every other tag\n      .replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>')\n      .replace(/&quot;/g, '\"').replace(/&apos;/g, \"'\")\n      .replace(/\\n{3,}/g, '\\n\\n')\n      .trim();\n  }\n\n  const original = $('Switch').itemMatching(i).json;\n  out.push({ json: { fileName: original.fileName, ext: 'docx', text: text } });\n}\n\nreturn out;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        -80
+      ],
+      "id": "20f0a35b-eb55-45d6-8098-ef151df4a167",
+      "name": "Word to text"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1beta/interactions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 7000
+            }
+          },
+          "timeout": 60000
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        -240,
+        128
+      ],
+      "id": "2a104603-6104-4a28-a00b-acf3d330b61a",
+      "name": "Ask gemini",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "alHP3JqFz8DgXTjS",
+          "name": "Gemini key"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Turn Gemini's reply into one clean candidate record.\n// If anything went wrong, the CV is marked unreadable so it gets flagged, never skipped.\nconst out = [];\nconst items = $input.all();\n\nfor (let i = 0; i < items.length; i++) {\n  const reply = items[i].json;\n  const fileName = $('Build AI request').itemMatching(i).json.fileName;\n\n  let facts = null;\n  let problem = '';\n  try {\n    if (reply.error) throw new Error(typeof reply.error === 'string' ? reply.error : (reply.error.description || reply.error.message || 'API error'));\n    if (reply.status && reply.status !== 'completed') throw new Error('Gemini did not finish: ' + reply.status);\n    // The answer is the text inside the last \"model_output\" step.\n    const steps = reply.steps || [];\n    const output = steps.filter(s => s.type === 'model_output').pop() || steps[steps.length - 1];\n    const textPart = ((output && output.content) || []).find(c => c.type === 'text');\n    facts = JSON.parse(textPart ? textPart.text : reply.output_text);\n  } catch (e) {\n    problem = e.message;\n  }\n\n  if (!facts) {\n    facts = { readable: false, unreadable_reason: 'Could not process: ' + problem };\n  }\n  if (facts.readable && !facts.email) {\n    facts.readable = false;\n    facts.unreadable_reason = 'No email address found, so the candidate cannot be identified';\n  }\n\n  out.push({ json: { fileName: fileName, ...facts } });\n}\n\nreturn out;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -64,
+        128
+      ],
+      "id": "082111a6-d404-41e5-a0a9-63cce02ef537",
+      "name": "Parse ai reply"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Build one Gemini request per CV.\n// Word files arrive with their text already extracted; PDFs arrive as files,\n// which Gemini reads directly (it reads page images, so scanned PDFs work too).\nconst today = new Date().toISOString().slice(0, 7); // e.g. \"2026-10\"\n\nconst instructions = `You extract facts from one CV for a recruiting database. Today is ${today}.\n\nRules:\n- Only use what the CV says. Never invent. Use \"\" for unknown text and [] for unknown lists.\n- readable: false if the document is blank, not a CV, or too damaged to read. Explain why in unreadable_reason.\n- email: lowercase. languages: lowercase English names, e.g. \"arabic\".\n- skills: one entry per skill with years of hands-on experience, summed over the jobs where it was used.\n  A job ending in \"Present\" counts until today.\n  Overlapping jobs count once. Round to 1 decimal. A skill only listed (no dated job) gets years 0.\n- Use these skill names when they apply: gohighlevel, zapier, n8n, make, api_webhooks, hubspot,\n  clickfunnels, activecampaign, meta_ads, google_ads, ga4, klaviyo, tiktok_ads, seo,\n  phone_support, chat_support, zendesk, freshdesk, intercom, healthcare, medical_admin, hipaa,\n  athenahealth, eclinicalworks, epic, insurance_verification, prior_auth,\n  quickbooks_online, xero, sage, bank_reconciliations, us_clients, uk_clients.\n  Other skills: short lowercase snake_case names.\n- cv_updated: the CV's own \"last updated\" date as YYYY-MM, or \"\" if it has none.\n- cv_text: the full CV as plain text, so it can be searched.`;\n\nconst schema = {\n  type: 'object',\n  properties: {\n    readable: { type: 'boolean' },\n    unreadable_reason: { type: 'string' },\n    full_name: { type: 'string' },\n    email: { type: 'string' },\n    phone: { type: 'string' },\n    location: { type: 'string' },\n    headline: { type: 'string' },\n    summary: { type: 'string' },\n    cv_updated: { type: 'string' },\n    languages: { type: 'array', items: { type: 'string' } },\n    skills: {\n      type: 'array',\n      items: {\n        type: 'object',\n        properties: { skill: { type: 'string' }, years: { type: 'number' } },\n        required: ['skill', 'years'],\n        additionalProperties: false\n      }\n    },\n    cv_text: { type: 'string' }\n  },\n  required: ['readable', 'unreadable_reason', 'full_name', 'email', 'phone', 'location',\n             'headline', 'summary', 'cv_updated', 'languages', 'skills', 'cv_text'],\n  additionalProperties: false\n};\n\nconst out = [];\nconst items = $input.all();\n\nfor (let i = 0; i < items.length; i++) {\n  const item = items[i];\n  let cvPart;\n\n  if (item.json.ext === 'docx') {\n    cvPart = { type: 'text', text: 'CV file: ' + item.json.fileName + '\\n\\n' + (item.json.text || '(empty document)') };\n  } else {\n    const pdf = await this.helpers.getBinaryDataBuffer(i, 'file');\n    cvPart = { type: 'document', mime_type: 'application/pdf', data: pdf.toString('base64') };\n  }\n\n  out.push({\n    json: {\n      fileName: item.json.fileName,\n      body: {\n        model: 'gemini-3.5-flash-lite',\n        system_instruction: instructions,\n        input: [cvPart, { type: 'text', text: 'Extract the facts from this CV.' }],\n        response_format: { type: 'text', mime_type: 'application/json', schema: schema }\n      }\n    }\n  });\n}\n\nreturn out;"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -416,
+        144
+      ],
+      "id": "b794c108-ce31-4dbf-9802-f2bd7d80f841",
+      "name": "Build AI request"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://irqnsrfhwinvujxkmsmo.supabase.co/rest/v1/rpc/process_cv",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "supabaseApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ p: $json }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        160,
+        128
+      ],
+      "id": "6cd3bec9-1118-4e2b-b26b-6839dda90f2e",
+      "name": "Save cv",
+      "credentials": {
+        "supabaseApi": {
+          "id": "sG1iM5931uuKhsNp",
+          "name": "Supabase account 5"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "On form submission": {
+      "main": [
+        [
+          {
+            "node": "Split files",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split files": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Build AI request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Mark as zip",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark as zip": {
+      "main": [
+        [
+          {
+            "node": "Compression",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compression": {
+      "main": [
+        [
+          {
+            "node": "Word to text",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Word to text": {
+      "main": [
+        [
+          {
+            "node": "Build AI request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ask gemini": {
+      "main": [
+        [
+          {
+            "node": "Parse ai reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build AI request": {
+      "main": [
+        [
+          {
+            "node": "Ask gemini",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse ai reply": {
+      "main": [
+        [
+          {
+            "node": "Save cv",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "6734c6e0-0e74-48da-96c4-ad33cc00a774",
+  "meta": {
+    "instanceId": "c3005fb383106b154c0cabcf7e6068a406c213ecf488ca0f944eb6a0246db863"
+  },
+  "nodeGroups": [],
+  "id": "JLKDAAPFf1w8cMke",
+  "tags": []
+}
