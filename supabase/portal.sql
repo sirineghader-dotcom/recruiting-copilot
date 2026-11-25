@@ -38,8 +38,12 @@ as $$
     'generated_at', now(),
     'stats', jsonb_build_object(
       'candidates', (select count(*) from candidates),
-      'cv_files',   (select count(*) from cv_files),
-      'flagged',    (select count(*) from cv_files where outcome = 'unreadable_flagged')),
+      'cv_files',   (select count(distinct file_name) from cv_files),
+      -- a file counts as flagged only if it was never read successfully (retries after an API error don't count)
+      'flagged',    (select count(distinct f.file_name) from cv_files f
+                     where f.outcome = 'unreadable_flagged'
+                       and not exists (select 1 from cv_files g where g.file_name = f.file_name
+                                       and g.outcome <> 'unreadable_flagged'))),
     'roles', (
       select coalesce(jsonb_agg(jsonb_build_object(
         'id', r.id, 'title', r.title, 'client', r.client_name, 'must_haves', r.must_haves,

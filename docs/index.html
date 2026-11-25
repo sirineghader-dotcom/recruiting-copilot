@@ -116,7 +116,7 @@ function renderRoles(d) {
   let html = `<div class="stats">
     <div class="stat"><b>${(d.roles || []).length}</b><span>open roles</span></div>
     <div class="stat"><b>${s.candidates ?? '–'}</b><span>candidates</span></div>
-    <div class="stat"><b>${s.cv_files ?? '–'}</b><span>CV files processed</span></div>
+    <div class="stat"><b>${s.cv_files ?? '–'}</b><span>CV files received</span></div>
     <div class="stat"><b>${s.flagged ?? '–'}</b><span>CVs flagged unreadable</span></div>
   </div>`;
   if (!(d.roles || []).length) html += '<p class="empty">No approved roles yet.</p>';
