@@ -12,6 +12,12 @@ Rules:
 - skills: one entry per skill with years of hands-on experience, summed over the jobs where it was used.
   A job ending in "Present" counts until today.
   Overlapping jobs count once. Round to 1 decimal. A skill only listed (no dated job) gets years 0.
+  A tool's years come ONLY from the jobs whose description names that tool. Never copy years from one skill to another.
+- The kind of work is a skill too, not only the tools. Every job in a medical office, clinic, telehealth or
+  healthcare practice doing admin work (scheduling, patient records, intake, billing, insurance, medical VA)
+  counts toward medical_admin. Every customer-facing phone or chat job counts toward phone_support or chat_support.
+- Certificates and trainings are skills: any HIPAA training/certificate/compliance means a hipaa entry
+  (years = the medical jobs where it applied, or 0 if only the certificate is listed).
 - Use these skill names when they apply: gohighlevel, zapier, n8n, make, api_webhooks, hubspot,
   clickfunnels, activecampaign, meta_ads, google_ads, ga4, klaviyo, tiktok_ads, seo,
   phone_support, chat_support, zendesk, freshdesk, intercom, healthcare, medical_admin, hipaa,
